@@ -1,0 +1,15 @@
+body{
+    background-color: #e2e2e2;
+}
+
+.ui.yellow.card{
+    margin-top: 18px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+.ui.red.card{
+    margin-top: 18px;
+    margin-left: 10px;
+    margin-right: 10px;
+}

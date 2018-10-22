@@ -4,7 +4,6 @@ import cheerio from 'cheerio';
 import {M3U} from 'playlist-parser';
 import electron from 'electron';
 import React from 'react';
-import axios from 'axios';
 // db
 import db from '../db';
 //ui
@@ -13,9 +12,14 @@ import {Button, Icon, Card} from 'semantic-ui-react';
 import parseXml from './parseXml';
 import decode from './subtitles';
 import bytesToAss from './subtitles/ass';
+import {SSL_OP_EPHEMERAL_RSA} from 'constants';
+import {toArray} from 'rxjs/operator/toArray';
 
 // URL
-const baseURL = 'http://www.crunchyroll.com';
+const baseURL = 'https://www.crunchyroll.com';
+
+//remove
+const sleep = t => new Promise(r => setTimeout(r, t));
 
 // API
 class Crunchyroll {
@@ -63,9 +67,9 @@ class Crunchyroll {
             return;
           }
           console.log('cookies', error, cookies);
-          //Store auth cookies
-          this.authCookies = cookies;
-          await db.auth.put({_id: 'crunchyroll', cookies});
+          //Store auth cookies (filter for crunchyroll cookies only)
+          this.authCookies = cookies.filter(c => c.domain.includes('crunchyroll.com'));
+          await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
           console.log('Saved cookies');
           loginWin.close();
         });
@@ -263,6 +267,63 @@ class Crunchyroll {
     return {type, url, subtitles};
   }
 
+  async getMySeries() {
+    console.log('cookies', this.authCookies);
+    if (this.authCookies === null) {
+      await sleep(10);
+      return this.getMySeries();
+    }
+
+    // auth cookies
+    const jar = request.jar();
+    this.authCookies.cookies.forEach(data => {
+      const cookie = request.cookie(`${data.name}=${data.value}`);
+      jar.setCookie(cookie, `${baseURL}${data.path}`);
+    });
+    //forces english page
+    //jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
+
+    const data = await request({
+      url: `${baseURL}/home/queue`,
+      jar,
+    });
+
+    //cheerio cursor
+    const $ = cheerio.load(data);
+    //main contents
+    const mainContent = $('#main_content');
+    const items = $('li.queue-item', mainContent)
+      .map((index, el) => {
+        const element = $(el);
+        //image
+        const imageContainer = $('div.episode-img', element);
+        const image = $('img', imageContainer).attr('src');
+        //episode title and link
+        const episodeTitle = $('a.episode', element).attr('title');
+        const episodeUrl = $('a.episode', element).attr('href');
+        //series info
+        const seriesInfo = $('.series-info', element);
+        const seriesTitle = $('.series-title', seriesInfo).text().trim();
+        const seriesNext = $('.series-data', seriesInfo).text().trim();
+        const seriesUrl = $('div.queue-controls > a.left', element).attr('href');
+        const description = $('.short-desc', seriesInfo).text().trim();
+
+        return {
+          image,
+          episodeTitle,
+          episodeUrl,
+          seriesTitle,
+          seriesNext,
+          seriesUrl,
+          description,
+        };
+      })
+      .toArray();
+
+    console.log(items);
+    //store in db
+    await db.bookmarkSeries.bulkDocs(items);
+  }
   search(query) {}
 
   async logout() {

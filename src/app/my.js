@@ -7,23 +7,23 @@ import db from '../db';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //components
-import Series from '../components/series';
+import BookmarkEpisodes from '../components/bookmarkedEpisodes';
 //ui
 import {Grid, Button, Icon, Message} from 'semantic-ui-react';
 
-export default class Home extends React.Component {
+export default class My extends React.Component {
   constructor() {
     super();
     this.state = {
-      series: [],
+      episodes: [],
     };
     //List update
-    Crunchyroll.getAllSeries();
+    Crunchyroll.getMySeries();
   }
 
   componentDidMount() {
     this.sub = Observable.fromEvent(
-      db.series.changes({
+      db.bookmarkSeries.changes({
         since: 0,
         live: true,
         include_docs: true,
@@ -34,7 +34,7 @@ export default class Home extends React.Component {
       .map(change => change.doc)
       .scan((acc, doc) => acc.concat([doc]), [])
       .debounceTime(1000)
-      .subscribe(series => this.setState({series}));
+      .subscribe(episodes => this.setState({episodes}));
   }
 
   componentWillUnmount() {
@@ -42,26 +42,20 @@ export default class Home extends React.Component {
   }
 
   render() {
-    const {series} = this.state;
+    const {episodes} = this.state;
 
-    //Default home screen
+    //Default My series screen
     let home = (
       <div>
-        <Link to="/my">
+        <Link to="/">
           <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="star" />
-            My Series
+            <Icon name="arrow left" />
+            Back
           </Button>
         </Link>
-        <Link to="/settings">
-          <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="setting" />
-            Settings
-          </Button>
-        </Link>
-        <Grid columns="equal">
+        <Grid>
           <Grid.Row stretched>
-            {series.map(s => <Series key={s._id} series={s} />)}
+            {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} />)}
           </Grid.Row>
         </Grid>
       </div>
@@ -73,7 +67,7 @@ export default class Home extends React.Component {
           <Message icon>
             <Icon name="circle notched" loading />
             <Message.Content>
-              <Message.Header>Loading Crunchy..</Message.Header>
+              <Message.Header>Loading Your Series..</Message.Header>
               Just one second!
             </Message.Content>
           </Message>

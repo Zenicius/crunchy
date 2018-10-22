@@ -1,11 +1,10 @@
 // packages
 import request from 'request-promise-native';
 import cheerio from 'cheerio';
-import querystring from 'querystring';
 import {M3U} from 'playlist-parser';
-import axios from 'axios';
 import electron from 'electron';
 import React from 'react';
+import axios from 'axios';
 // db
 import db from '../db';
 //ui
@@ -197,7 +196,7 @@ class Crunchyroll {
   async getEpisode(episode) {
     console.log('Loading episode: ', episode);
     //load episode page
-    const {data} = await axios.get(episode.url);
+    const data = await request(episode.url);
     //cheerio
     const $ = cheerio.load(data);
     //available formats
@@ -208,25 +207,27 @@ class Crunchyroll {
       const formatId = token.replace('shomedia.', '').replace(/p$/, '');
       formats.push(formatId);
     });
-
     const format = formats[0];
     const idRegex = /([0-9]+)$/g;
     const idMatches = idRegex.exec(episode.url);
     const id = idMatches[0];
 
-    const xmlUrl = `http://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&` +
+    const xmlUrl = `https://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&` +
       `media_id=${id}&video_format=${format}&video_quality=${format}`;
 
-    const {data: xmlData} = await axios({
+    const xmlData = await request({
       url: xmlUrl,
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      data: querystring.stringify({
+      form: {
         current_page: episode.url,
-      }),
+      },
     });
+
+    console.log(format);
+    console.log(xmlUrl);
 
     const xmlObj = await parseXml(xmlData);
     const preload = xmlObj['config:Config']['default:preload'][0];
@@ -235,13 +236,14 @@ class Crunchyroll {
     const streamFile = streamInfo.file[0];
 
     //load stream urls playlist
-    const {data: streamFileData} = await axios.get(streamFile);
+    const streamFileData = await request(streamFile);
     const playlist = M3U.parse(streamFileData);
 
+    //TODO User subtitles
     console.log(subtitlesInfo);
     //subtitles
     const englishSubs = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('Brasil')).pop();
-    const {data: subData} = await axios.get(englishSubs.link);
+    const subData = await request(englishSubs.link);
     const subsObj = await parseXml(subData);
     const subsId = parseInt(subsObj.subtitle.$.id, 10);
     const subsIv = subsObj.subtitle.iv.pop();
@@ -264,15 +266,19 @@ class Crunchyroll {
   search(query) {}
 
   async logout() {
-    //Reset cookies from db
+    //Reset cookies from db TODO: FIX logout after login
+    await db.auth.remove(this.authCookies);
     this.authCookies = null;
-    await db.auth.put({_id: 'crunchyroll', cookies: null});
   }
 
   renderSettings() {
     const loggedIn = this.authCookies !== null;
-    console.log(loggedIn);
-    console.log(this.authCookies);
+    if (loggedIn) {
+      console.log('Settings: Logged In!');
+    } else {
+      console.log('Settings: Not Logged In');
+    }
+    //console.log(this.authCookies);
 
     return (
       <div className="settings">
@@ -286,11 +292,25 @@ class Crunchyroll {
           </Card.Content>
           <Card.Content extra>
             {loggedIn
-              ? <Button icon labelPosition="left" color="grey" className="button" onClick={() => this.logout()}>
+              ? <Button
+                  icon
+                  labelPosition="left"
+                  color="grey"
+                  href="#crlogout"
+                  className="button"
+                  onClick={() => this.logout()}
+                >
                   <Icon name="log out" />
                   Logout
                 </Button>
-              : <Button icon labelPosition="left" color="grey" className="button" onClick={() => this.auth()}>
+              : <Button
+                  icon
+                  labelPosition="left"
+                  color="grey"
+                  href="#crlogin"
+                  className="button"
+                  onClick={() => this.auth()}
+                >
                   <Icon name="user" />
                   Login
                 </Button>}

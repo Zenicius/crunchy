@@ -96,7 +96,7 @@ class Crunchyroll {
     await this.isInited;
 
     // load catalogue
-    console.log('Getting popular series at page ', page);
+    console.log('Getting popular series');
     const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`).catch(function(err) {
       console.log('Failed');
       return;
@@ -296,7 +296,11 @@ class Crunchyroll {
   async getMySeries() {
     await this.isInited;
 
-    console.log(this.authCookies);
+    //not logged in
+    if (this.authCookies == null) {
+      return;
+    }
+
     console.log(this.authCookies.cookies);
     // add auth cookies
     const jar = request.jar();

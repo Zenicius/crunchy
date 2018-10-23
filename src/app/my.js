@@ -43,7 +43,6 @@ export default class My extends React.Component {
 
   render() {
     const {episodes} = this.state;
-    console.log(episodes);
 
     //Default My series screen
     let home = (

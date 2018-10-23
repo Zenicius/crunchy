@@ -17,10 +17,13 @@ export default class Home extends React.Component {
     this.state = {
       series: [],
     };
-    //List update
-    Crunchyroll.getAllSeries();
-  }
 
+    //get all pages from series
+    var i;
+    for (i = 0; i <= 16; i++) {
+      Crunchyroll.getAllSeries(i);
+    }
+  }
   componentDidMount() {
     this.sub = Observable.fromEvent(
       db.series.changes({
@@ -80,7 +83,6 @@ export default class Home extends React.Component {
         </div>
       );
     }
-
     return (
       <div>
         {home}

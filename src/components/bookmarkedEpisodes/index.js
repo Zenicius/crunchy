@@ -15,7 +15,6 @@ export default withRouter(({episode, history}) => {
     history.push(location);
   };
 
-  //TODO make it better
   return (
     <Grid.Column width="5">
       <Card>

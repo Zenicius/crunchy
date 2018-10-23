@@ -18,18 +18,19 @@ import {toArray} from 'rxjs/operator/toArray';
 // URL
 const baseURL = 'https://www.crunchyroll.com';
 
-//remove
-const sleep = t => new Promise(r => setTimeout(r, t));
-
 // API
 class Crunchyroll {
   constructor() {
     this.isLoading = false;
+
     this.authCookies = null;
-    this.init();
+    this.isInited = this.init();
   }
 
   async init() {
+    if (this.authCookies) {
+      return;
+    }
     //load auth
     try {
       this.authCookies = await db.auth.get('crunchyroll');
@@ -66,11 +67,13 @@ class Crunchyroll {
             console.log('Error: Failed to get cookies');
             return;
           }
-          console.log('cookies', error, cookies);
+          //console.log('cookies', error, cookies);
           //Store auth cookies (filter for crunchyroll cookies only)
           this.authCookies = cookies.filter(c => c.domain.includes('crunchyroll.com'));
           await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
+          this.authCookies = await db.auth.get('crunchyroll');
           console.log('Saved cookies');
+          //closes window
           loginWin.close();
         });
       }
@@ -80,12 +83,20 @@ class Crunchyroll {
     loginWin.loadURL(`${baseURL}/login?next=%2F`);
   }
 
+  async logout() {
+    //Reset cookies from db TODO: FIX logout after login
+    await db.auth.remove(this.authCookies);
+    this.authCookies = null;
+  }
+
   async getAllSeries(page = 0) {
-    //TODO: ERROR PAGES
-    console.log('Getting popular series');
     //Loading
     this.isLoading = true;
+    // wait for auth
+    await this.isInited;
+
     // load catalogue
+    console.log('Getting popular series at page ', page);
     const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`).catch(function(err) {
       console.log('Failed');
       return;
@@ -132,6 +143,9 @@ class Crunchyroll {
   }
 
   async getEpisodes(series) {
+    // wait for auth
+    await this.isInited;
+
     //TODO: Loading
     console.log('Getting episodes for ', series.url);
     // load episodes
@@ -176,6 +190,9 @@ class Crunchyroll {
   }
 
   async getInfo(series) {
+    // wait for auth
+    await this.isInited;
+
     console.log('Getting info for ', series.url);
     // load info
     const data = await request(series.url);
@@ -198,6 +215,9 @@ class Crunchyroll {
   }
 
   async getEpisode(episode) {
+    // wait for auth
+    await this.isInited;
+
     console.log('Loading episode: ', episode);
     //load episode page
     const data = await request(episode.url);
@@ -219,8 +239,17 @@ class Crunchyroll {
     const xmlUrl = `https://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&` +
       `media_id=${id}&video_format=${format}&video_quality=${format}`;
 
+    // add auth cookies
+    const jar = request.jar();
+    if (this.authCookies !== null) {
+      this.authCookies.cookies.forEach(data => {
+        const cookie = request.cookie(`${data.name}=${data.value}`);
+        jar.setCookie(cookie, `${baseURL}${data.path}`);
+      });
+    }
     const xmlData = await request({
       url: xmlUrl,
+      jar,
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
@@ -229,9 +258,6 @@ class Crunchyroll {
         current_page: episode.url,
       },
     });
-
-    console.log(format);
-    console.log(xmlUrl);
 
     const xmlObj = await parseXml(xmlData);
     const preload = xmlObj['config:Config']['default:preload'][0];
@@ -268,21 +294,21 @@ class Crunchyroll {
   }
 
   async getMySeries() {
-    console.log('cookies', this.authCookies);
-    if (this.authCookies === null) {
-      await sleep(10);
-      return this.getMySeries();
-    }
+    await this.isInited;
 
-    // auth cookies
+    console.log(this.authCookies);
+    console.log(this.authCookies.cookies);
+    // add auth cookies
     const jar = request.jar();
     this.authCookies.cookies.forEach(data => {
       const cookie = request.cookie(`${data.name}=${data.value}`);
       jar.setCookie(cookie, `${baseURL}${data.path}`);
     });
-    //forces english page
+
+    // force english language
     //jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
 
+    // request page html
     const data = await request({
       url: `${baseURL}/home/queue`,
       jar,
@@ -323,14 +349,10 @@ class Crunchyroll {
     console.log(items);
     //store in db
     await db.bookmarkSeries.bulkDocs(items);
+
+    return items;
   }
   search(query) {}
-
-  async logout() {
-    //Reset cookies from db TODO: FIX logout after login
-    await db.auth.remove(this.authCookies);
-    this.authCookies = null;
-  }
 
   renderSettings() {
     const loggedIn = this.authCookies !== null;

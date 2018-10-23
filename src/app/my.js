@@ -43,6 +43,7 @@ export default class My extends React.Component {
 
   render() {
     const {episodes} = this.state;
+    console.log(episodes);
 
     //Default My series screen
     let home = (
@@ -69,6 +70,26 @@ export default class My extends React.Component {
             <Message.Content>
               <Message.Header>Loading Your Series..</Message.Header>
               Just one second!
+            </Message.Content>
+          </Message>
+        </div>
+      );
+    }
+    //not logged in
+    if (Crunchyroll.authCookies == null) {
+      home = (
+        <div>
+          <Link to="/">
+            <Button icon labelPosition="left" color="grey" className="button">
+              <Icon name="arrow left" />
+              Back
+            </Button>
+          </Link>
+          <Message negative icon>
+            <Icon name="info" />
+            <Message.Content>
+              <Message.Header>You are not logged-in!</Message.Header>
+              Go to settings page to peform login..
             </Message.Content>
           </Message>
         </div>

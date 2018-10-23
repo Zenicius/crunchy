@@ -5,13 +5,32 @@ import {withRouter} from 'react-router-dom';
 import {Grid, Card, Icon, Image, Button} from 'semantic-ui-react';
 
 export default withRouter(({episode, history}) => {
+  const baseURL = 'https://www.crunchyroll.com';
+  const id = episode._id.substring(0, episode._id.indexOf('?'));
+  const formatedEpisode = {
+    url: `${baseURL}${id}`,
+  };
+  const formatedSeries = {
+    url: `${baseURL}${episode.seriesUrl}`,
+    title: episode.seriesTitle,
+    _id: episode.seriesUrl,
+  };
+
   //Open Series Page
   const openEpisode = async () => {
     const location = {
       pathname: `/episode${episode._id}`,
-      state: episode, //FIX
+      state: formatedEpisode,
     };
+    history.push(location);
+  };
 
+  const openSeries = async () => {
+    console.log(formatedSeries);
+    const location = {
+      pathname: `/series${episode.seriesUrl}`,
+      state: formatedSeries,
+    };
     history.push(location);
   };
 
@@ -28,10 +47,10 @@ export default withRouter(({episode, history}) => {
         </Card.Content>
         <Card.Content extra>
           <div className="ui two buttons">
-            <Button basic color="green">
+            <Button basic color="green" onClick={openEpisode}>
               Watch
             </Button>
-            <Button basic color="green">
+            <Button basic color="green" onClick={openSeries}>
               Series Page
             </Button>
           </div>

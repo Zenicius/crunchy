@@ -84,7 +84,7 @@ class Crunchyroll {
   }
 
   async logout() {
-    //Reset cookies from db TODO: FIX logout after login
+    //Reset cookies from db
     await db.auth.remove(this.authCookies);
     this.authCookies = null;
   }
@@ -146,7 +146,6 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    //TODO: Loading
     console.log('Getting episodes for ', series.url);
     // load episodes
     const data = await request(series.url);
@@ -269,7 +268,6 @@ class Crunchyroll {
     const streamFileData = await request(streamFile);
     const playlist = M3U.parse(streamFileData);
 
-    //TODO User subtitles
     console.log(subtitlesInfo);
     //subtitles
     const englishSubs = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('Brasil')).pop();
@@ -337,8 +335,11 @@ class Crunchyroll {
         const seriesNext = $('.series-data', seriesInfo).text().trim();
         const seriesUrl = $('div.queue-controls > a.left', element).attr('href');
         const description = $('.short-desc', seriesInfo).text().trim();
+        //id
+        const _id = episodeUrl;
 
         return {
+          _id,
           image,
           episodeTitle,
           episodeUrl,

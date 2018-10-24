@@ -2,11 +2,20 @@
 const url = require('url');
 const path = require('path');
 const electron = require('electron');
+const {ipcMain} = require('electron');
 
 // Module to control application life.
 const app = electron.app;
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow;
+
+//Global just initilized variable
+global.justInitilized = true;
+
+//function to change global variable
+ipcMain.on('setGlobal', (event, value) => {
+  global.justInitilized = value;
+});
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.

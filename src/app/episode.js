@@ -20,7 +20,8 @@ export default class Episode extends React.Component {
   componentDidUpdate() {
     const {episode, file} = this.state;
 
-    if (!episode || !file) return;
+    //Dont do nothing if theres no file, episode or if theres an error
+    if (!episode || !file || file.err !== null) return;
 
     //Subtitles plugin e config
     videojs('video', {
@@ -69,18 +70,31 @@ export default class Episode extends React.Component {
     );
     //video player if ready
     if (episode && file) {
-      this.isPlaying = true;
-      body = (
-        <video
-          id="video"
-          className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid"
-          controls
-          autoPlay
-          preload="auto"
-        >
-          <source src={file.url} type={file.type} />
-        </video>
-      );
+      //No error, start video
+      if (file.err == null) {
+        this.isPlaying = true;
+        body = (
+          <video
+            id="video"
+            className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid"
+            controls
+            autoPlay
+            preload="auto"
+          >
+            <source src={file.url} type={file.type} />
+          </video>
+        );
+      } else {
+        body = (
+          <Message negative icon>
+            <Icon name="info" />
+            <Message.Content>
+              <Message.Header>{file.err}</Message.Header>
+              You are probably trying to load a premium episode not being logged-in !
+            </Message.Content>
+          </Message>
+        );
+      }
     }
 
     return (

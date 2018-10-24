@@ -23,7 +23,6 @@ export default class Series extends React.Component {
   }
 
   async componentDidMount() {
-    //TODO INFO
     const series = await this.getSeries(this.props);
 
     this.sub = Observable.fromEvent(

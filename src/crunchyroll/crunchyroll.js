@@ -6,14 +6,10 @@ import electron from 'electron';
 import React from 'react';
 // db
 import db from '../db';
-//ui
-import {Button, Icon, Card} from 'semantic-ui-react';
 //subtitles
 import parseXml from './parseXml';
 import decode from './subtitles';
 import bytesToAss from './subtitles/ass';
-import {SSL_OP_EPHEMERAL_RSA} from 'constants';
-import {toArray} from 'rxjs/operator/toArray';
 
 // URL
 const baseURL = 'https://www.crunchyroll.com';
@@ -97,6 +93,7 @@ class Crunchyroll {
 
     // load catalogue
     console.log('Getting popular series');
+
     const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`).catch(function(err) {
       console.log('Failed');
       return;
@@ -217,7 +214,7 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Loading episode: ', episode);
+    console.log('Loading episode: ', episode.url);
     //load episode page
     const data = await request(episode.url);
     //cheerio
@@ -258,9 +255,24 @@ class Crunchyroll {
       },
     });
 
+    //file to be returned
+    let subtitles = null, url = null, type = null;
+    //error
+    let err = null;
+
     const xmlObj = await parseXml(xmlData);
     const preload = xmlObj['config:Config']['default:preload'][0];
-    const subtitlesInfo = preload.subtitles[0].subtitle;
+
+    //try get subtitles from preload, if cant, episode is premium
+    let subtitlesInfo;
+    try {
+      subtitlesInfo = preload.subtitles[0].subtitle;
+    } catch (e) {
+      err = 'Failed to load episode';
+      console.log('Failed to load episode (episode is probably premium)');
+      return {subtitles, url, type, err};
+    }
+
     const streamInfo = preload.stream_info[0];
     const streamFile = streamInfo.file[0];
 
@@ -284,11 +296,11 @@ class Crunchyroll {
     });
 
     //final
-    const subtitles = URL.createObjectURL(subBlob);
-    const url = playlist.pop().file;
-    const type = 'application/x-mpegURL';
+    subtitles = URL.createObjectURL(subBlob);
+    url = playlist.pop().file;
+    type = 'application/x-mpegURL';
 
-    return {type, url, subtitles};
+    return {type, url, subtitles, err};
   }
 
   async getMySeries() {
@@ -384,56 +396,6 @@ class Crunchyroll {
     return items;
   }
   search(query) {}
-
-  renderSettings() {
-    const loggedIn = this.authCookies !== null;
-    if (loggedIn) {
-      console.log('Settings: Logged In!');
-    } else {
-      console.log('Settings: Not Logged In');
-    }
-    //console.log(this.authCookies);
-
-    return (
-      <div className="settings">
-        <Card color="yellow">
-          <Card.Content>
-            <Card.Header>Crunchyroll</Card.Header>
-            <Card.Description>
-
-              Login at Crunchyroll to see premimum videos and quality!
-            </Card.Description>
-          </Card.Content>
-          <Card.Content extra>
-            {loggedIn
-              ? <Button
-                  icon
-                  labelPosition="left"
-                  color="grey"
-                  href="#crlogout"
-                  className="button"
-                  onClick={() => this.logout()}
-                >
-                  <Icon name="log out" />
-                  Logout
-                </Button>
-              : <Button
-                  icon
-                  labelPosition="left"
-                  color="grey"
-                  href="#crlogin"
-                  className="button"
-                  onClick={() => this.auth()}
-                >
-                  <Icon name="user" />
-                  Login
-                </Button>}
-          </Card.Content>
-        </Card>
-
-      </div>
-    );
-  }
 }
 
 export default new Crunchyroll();

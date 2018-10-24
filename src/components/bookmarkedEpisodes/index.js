@@ -1,8 +1,10 @@
 //npm
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+//db
+import db from '../../db';
 //ui
-import {Grid, Card, Icon, Image, Button} from 'semantic-ui-react';
+import {Grid, Card, Image, Button} from 'semantic-ui-react';
 
 export default withRouter(({episode, history}) => {
   const baseURL = 'https://www.crunchyroll.com';
@@ -16,7 +18,7 @@ export default withRouter(({episode, history}) => {
     _id: episode.seriesUrl,
   };
 
-  //Open Series Page
+  //Open Episode
   const openEpisode = async () => {
     const location = {
       pathname: `/episode${episode._id}`,
@@ -24,13 +26,28 @@ export default withRouter(({episode, history}) => {
     };
     history.push(location);
   };
-
+  //Open series page
   const openSeries = async () => {
-    console.log(formatedSeries);
     const location = {
       pathname: `/series${episode.seriesUrl}`,
       state: formatedSeries,
     };
+    //Store at current db to return after
+    try {
+      const doc = await db.current.get('series');
+      const update = {
+        _id: 'series',
+        data: formatedSeries,
+      };
+      if (doc) {
+        update._rev = doc._rev;
+      }
+      await db.current.put(update);
+    } catch (e) {
+      if (e.status === 404) {
+        await db.current.put({_id: 'series', data: formatedSeries});
+      }
+    }
     history.push(location);
   };
 

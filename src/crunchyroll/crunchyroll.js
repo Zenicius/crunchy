@@ -298,8 +298,6 @@ class Crunchyroll {
     if (this.authCookies == null) {
       return;
     }
-
-    console.log(this.authCookies.cookies);
     // add auth cookies
     const jar = request.jar();
     this.authCookies.cookies.forEach(data => {
@@ -351,10 +349,38 @@ class Crunchyroll {
       })
       .toArray();
 
-    console.log(items);
+    //remove series no longer bookmarked from db
+    const dbItems = await db.bookmarkSeries.allDocs({
+      include_docs: true,
+    });
+    if (dbItems.rows.length > items.length) {
+      //deletes item no longer bookmakerd
+      dbItems.rows.forEach(async dbItem => {
+        let found = true;
+        let stop = false;
+        items.forEach(item => {
+          if (!stop) {
+            if (dbItem.id == item._id) {
+              found = true;
+              stop = true;
+            } else {
+              found = false;
+              stop = false;
+            }
+          }
+        });
+        if (found == false) {
+          //no longer bookmarked
+          const toBeDeleted = await db.bookmarkSeries.get(dbItem.id);
+          await db.bookmarkSeries.remove(toBeDeleted);
+        }
+      });
+    }
+
     //store in db
     await db.bookmarkSeries.bulkDocs(items);
 
+    console.log('My series: ', items);
     return items;
   }
   search(query) {}

@@ -13,6 +13,7 @@ export default withRouter(({series, history}) => {
       pathname: `/series${series._id}`,
       state: series,
     };
+    //Store at current db to return after
     try {
       const doc = await db.current.get('series');
       const update = {

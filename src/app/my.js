@@ -17,11 +17,12 @@ export default class My extends React.Component {
     this.state = {
       episodes: [],
     };
-    //List update
-    Crunchyroll.getMySeries();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    //List update and wait for changes(removed from bookmarked)
+    await Crunchyroll.getMySeries();
+
     this.sub = Observable.fromEvent(
       db.bookmarkSeries.changes({
         since: 0,
@@ -42,8 +43,8 @@ export default class My extends React.Component {
   }
 
   render() {
+    //My episodes
     const {episodes} = this.state;
-    console.log('episodes ', episodes);
 
     //Default My series screen
     let home = (

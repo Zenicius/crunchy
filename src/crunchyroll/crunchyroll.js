@@ -160,6 +160,7 @@ class Crunchyroll {
         const image = img_container.attr('src') || img_container.attr('data-thumbnailurl');
         const title = $('.series-title', element).text().trim();
         const description = $('.short-desc', element).text().trim();
+        const number = title.replace(/^\D+/g, '');
         var season = $('a.episode', element).attr('title').replace(title, '');
 
         //unique season or no seasons
@@ -174,6 +175,7 @@ class Crunchyroll {
           title,
           description,
           season,
+          number,
           series: series._id,
         };
       })
@@ -382,7 +384,7 @@ class Crunchyroll {
           }
         });
         if (found == false) {
-          //no longer bookmarked
+          //get and delete no longer bookmarked
           const toBeDeleted = await db.bookmarkSeries.get(dbItem.id);
           await db.bookmarkSeries.remove(toBeDeleted);
         }
@@ -395,7 +397,29 @@ class Crunchyroll {
     console.log('My series: ', items);
     return items;
   }
-  search(query) {}
+  async search(query) {
+    //search catalogue
+    const data = await request(`${baseURL}/ajax/?req=RpcApiSearch_GetSearchCandidates`);
+
+    //data to json
+    const lines = data.split('\n');
+    const dataJson = lines[1];
+    const catalogue = JSON.parse(dataJson);
+
+    //series filter
+    const series = catalogue.data.filter(it => it.type === 'Series');
+
+    const matches = series.filter(it => it.name.toLowerCase().includes(query.toLowerCase())).map(it => ({
+      _id: it.link,
+      source: 'crunchyroll',
+      title: it.name,
+      url: `${baseURL}${it.link}`,
+      image: it.image,
+      count: '',
+    }));
+
+    return matches;
+  }
 }
 
 export default new Crunchyroll();

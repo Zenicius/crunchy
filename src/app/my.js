@@ -1,19 +1,20 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
-import {Link} from 'react-router-dom';
 //db
 import db from '../db';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //components
+import Navbar from '../components/navbar';
 import BookmarkEpisodes from '../components/bookmarkedEpisodes';
 //ui
-import {Grid, Button, Icon, Message} from 'semantic-ui-react';
+import {Grid, Icon, Message} from 'semantic-ui-react';
 
 export default class My extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.location = this.props.location;
     this.state = {
       episodes: [],
     };
@@ -49,12 +50,7 @@ export default class My extends React.Component {
     //Default My series screen
     let home = (
       <div>
-        <Link to="/">
-          <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="arrow left" />
-            Back
-          </Button>
-        </Link>
+        <Navbar location={this.location} />
         <Grid>
           <Grid.Row stretched>
             {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} />)}
@@ -62,30 +58,11 @@ export default class My extends React.Component {
         </Grid>
       </div>
     );
-    //Loading
-    if (Crunchyroll.isLoading) {
-      home = (
-        <div>
-          <Message icon>
-            <Icon name="circle notched" loading />
-            <Message.Content>
-              <Message.Header>Loading Your Series..</Message.Header>
-              Just one second!
-            </Message.Content>
-          </Message>
-        </div>
-      );
-    }
     //not logged in
     if (Crunchyroll.authCookies == null) {
       home = (
         <div>
-          <Link to="/">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="arrow left" />
-              Back
-            </Button>
-          </Link>
+          <Navbar location={this.location} />
           <Message negative icon>
             <Icon name="info" />
             <Message.Content>

@@ -1,14 +1,16 @@
 //npm
 import React from 'react';
-import {Link} from 'react-router-dom';
 //ui
 import {Button, Icon, Card} from 'semantic-ui-react';
+//components
+import Navbar from '../components/navbar';
 //api
 import {Crunchyroll} from '../crunchyroll';
 
 export default class Settings extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
+    this.location = this.props.location;
     this.state = {};
   }
 
@@ -23,12 +25,7 @@ export default class Settings extends React.Component {
 
     return (
       <div>
-        <Link to="/">
-          <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="arrow left" />
-            Back
-          </Button>
-        </Link>
+        <Navbar location={this.location} />
         <div className="content">
           <div className="settings">
             <Card color="yellow">

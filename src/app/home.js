@@ -1,27 +1,26 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
-import {Link} from 'react-router-dom';
-import {ipcRenderer, remote} from 'electron';
 //db
 import db from '../db';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //components
+import Navbar from '../components/navbar';
 import Series from '../components/series';
 //ui
-import {Grid, Button, Icon, Message} from 'semantic-ui-react';
+import {Grid, Message, Icon} from 'semantic-ui-react';
 import InfiniteScroll from 'react-infinite-scroller';
 
 export default class Home extends React.Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.currentPage = 0;
     this.startPage = 0;
+    this.hasMoreItems = true;
+    this.location = this.props.location;
     this.state = {
       series: [],
-      hasMoreItems: true,
-      ready: false,
     };
 
     this.init();
@@ -38,23 +37,21 @@ export default class Home extends React.Component {
       this.currentPage = this.startPage;
     } catch (e) {
       if (e.status === 404) {
-        console.log('initing');
+        return;
       }
     }
   }
 
   loadItems(page) {
+    this.currentPage = page;
     //No more items after page 16
     if (page > 16) {
-      this.setState = {
-        hasMoreItems: false,
-      };
+      this.hasMoreItems = false;
+      console.log('Loaded all pages!');
       return;
     }
     //get page
     Crunchyroll.getAllSeries(page);
-
-    this.currentPage = page;
   }
 
   componentDidMount() {
@@ -100,22 +97,11 @@ export default class Home extends React.Component {
     if (!Crunchyroll.isLoading) {
       home = (
         <div>
-          <Link to="/my">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="star" />
-              My Series
-            </Button>
-          </Link>
-          <Link to="/settings">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="setting" />
-              Settings
-            </Button>
-          </Link>
+          <Navbar location={this.location} />
           <InfiniteScroll
             pageStart={this.startPage}
             loadMore={this.loadItems.bind(this)}
-            hasMore={this.state.hasMoreItems}
+            hasMore={this.hasMoreItems}
             loader={
               <div className="loader" key={0}>
                 <h1>Loading...</h1>
@@ -137,6 +123,7 @@ export default class Home extends React.Component {
     if (Crunchyroll.isLoading) {
       home = (
         <div>
+          <Navbar location={this.location} />
           <Message icon>
             <Icon name="circle notched" loading />
             <Message.Content>

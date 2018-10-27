@@ -397,9 +397,16 @@ class Crunchyroll {
     console.log('My series: ', items);
     return items;
   }
-  async search(query) {
+  async search() {
+    // force english language
+    const jar = request.jar();
+    jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
+
     //search catalogue
-    const data = await request(`${baseURL}/ajax/?req=RpcApiSearch_GetSearchCandidates`);
+    const data = await request({
+      url: `${baseURL}/ajax/?req=RpcApiSearch_GetSearchCandidates`,
+      jar,
+    });
 
     //data to json
     const lines = data.split('\n');
@@ -409,16 +416,19 @@ class Crunchyroll {
     //series filter
     const series = catalogue.data.filter(it => it.type === 'Series');
 
+    /*
+    //matches
     const matches = series.filter(it => it.name.toLowerCase().includes(query.toLowerCase())).map(it => ({
       _id: it.link,
       source: 'crunchyroll',
       title: it.name,
       url: `${baseURL}${it.link}`,
-      image: it.image,
+      image: it.img,
       count: '',
     }));
+    */
 
-    return matches;
+    return series;
   }
 }
 

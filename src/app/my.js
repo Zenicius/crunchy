@@ -40,7 +40,9 @@ export default class My extends React.Component {
   }
 
   componentWillUnmount() {
-    this.sub.unsubscribe();
+    if (this.sub !== undefined || null) {
+      this.sub.unsubscribe();
+    }
   }
 
   render() {

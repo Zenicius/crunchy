@@ -1,10 +1,16 @@
+//npm
 import React from 'react';
+import {withRouter} from 'react-router-dom';
 import {Link} from 'react-router-dom';
-import {Menu, Icon, Input} from 'semantic-ui-react';
+//components
+import SearchComponent from '../search';
+//ui
+import {Menu} from 'semantic-ui-react';
 
-export default class Navbar extends React.Component {
+class Navbar extends React.Component {
   constructor(props) {
     super(props);
+    this.history = this.props.history;
     this.state = {activeItem: '/'};
   }
 
@@ -20,19 +26,15 @@ export default class Navbar extends React.Component {
 
     return (
       <Menu inverted pointing>
-        <Link to="/">
-          <Menu.Item name="Home" active={activeItem === '/'} />
-        </Link>
-        <Link to="/my">
-          <Menu.Item name="My Series" active={activeItem === '/my'} />
-        </Link>
-        <Link to="/settings">
-          <Menu.Item name="Settings" active={activeItem === '/settings'} />
-        </Link>
+        <Menu.Item name="Home" as={Link} to="/" active={activeItem === '/'} />
+        <Menu.Item name="My Series" as={Link} to="/my" active={activeItem === '/my'} />
+        <Menu.Item name="Settings" as={Link} to="/settings" active={activeItem === '/settings'} />
         <Menu.Item position="right">
-          <Input className="search" icon={<Icon name="search" inverted circular link />} placeholder="Search..." />
+          <SearchComponent history={this.history} />
         </Menu.Item>
       </Menu>
     );
   }
 }
+
+export default withRouter(Navbar);

@@ -9,12 +9,17 @@ export default class Episode extends React.Component {
   constructor(props) {
     super(props);
     this.isPlaying = false;
+    this._isMounted = false;
     this.state = {
       episode: null,
       file: null,
     };
     //load episode
     this.init(props);
+  }
+
+  componentDidMount() {
+    this._isMounted = true;
   }
 
   componentDidUpdate() {
@@ -35,6 +40,8 @@ export default class Episode extends React.Component {
   }
 
   componentWillUnmount() {
+    this._isMounted = false;
+
     //if videojs is initilized destroy to create another later
     if (this.isPlaying) {
       videojs('video').dispose();
@@ -46,10 +53,13 @@ export default class Episode extends React.Component {
   async init(props) {
     const {location} = props;
     const file = await Crunchyroll.getEpisode(location.state);
-    this.setState({
-      episode: location.state,
-      file,
-    });
+
+    if (this._isMounted) {
+      this.setState({
+        episode: location.state,
+        file,
+      });
+    }
   }
 
   render() {

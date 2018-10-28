@@ -14,13 +14,27 @@ import {Grid, Icon, Message} from 'semantic-ui-react';
 export default class My extends React.Component {
   constructor(props) {
     super(props);
+    this.isLoggedin = false;
+    this.isLoading = false;
     this.location = this.props.location;
     this.state = {
       episodes: [],
     };
+
+    this.init();
+  }
+
+  init() {
+    //Checks if user is logged in
+    if (Crunchyroll.authCookies !== null) {
+      this.isLoggedin = true;
+      this.isLoading = true;
+    }
   }
 
   async componentDidMount() {
+    this._isMounted = true;
+
     //List update and wait for changes(removed from bookmarked)
     await Crunchyroll.getMySeries();
 
@@ -36,10 +50,19 @@ export default class My extends React.Component {
       .map(change => change.doc)
       .scan((acc, doc) => acc.concat([doc]), [])
       .debounceTime(1000)
-      .subscribe(episodes => this.setState({episodes}));
+      .subscribe(episodes => this.subscribeState(episodes));
+  }
+
+  subscribeState(episodes) {
+    if (this._isMounted) {
+      this.setState({
+        episodes: episodes,
+      });
+    }
   }
 
   componentWillUnmount() {
+    this._isMounted = false;
     if (this.sub !== undefined || null) {
       this.sub.unsubscribe();
     }
@@ -49,20 +72,43 @@ export default class My extends React.Component {
     //My episodes
     const {episodes} = this.state;
 
+    //If episodes is ready ends loading
+    if (episodes.length > 0) {
+      this.isLoading = false;
+    }
+
+    let my;
     //Default My series screen
-    let home = (
-      <div>
-        <Navbar location={this.location} />
-        <Grid>
-          <Grid.Row stretched>
-            {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} />)}
-          </Grid.Row>
-        </Grid>
-      </div>
-    );
+    if (!this.isLoading) {
+      my = (
+        <div>
+          <Navbar location={this.location} />
+          <Grid>
+            <Grid.Row stretched>
+              {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} />)}
+            </Grid.Row>
+          </Grid>
+        </div>
+      );
+    }
+    //Loading..
+    if (this.isLoading) {
+      my = (
+        <div>
+          <Navbar location={this.location} />
+          <Message icon>
+            <Icon name="circle notched" loading />
+            <Message.Content>
+              <Message.Header>Loading Your Series..</Message.Header>
+              Just one second!
+            </Message.Content>
+          </Message>
+        </div>
+      );
+    }
     //not logged in
-    if (Crunchyroll.authCookies == null) {
-      home = (
+    if (!this.isLoggedin) {
+      my = (
         <div>
           <Navbar location={this.location} />
           <Message negative icon>
@@ -78,7 +124,7 @@ export default class My extends React.Component {
 
     return (
       <div>
-        {home}
+        {my}
       </div>
     );
   }

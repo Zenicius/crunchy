@@ -3,6 +3,8 @@ import React from 'react';
 import _ from 'lodash';
 //Crunchyroll api
 import {Crunchyroll} from '../../crunchyroll';
+//db
+import db from '../../db';
 //ui
 import {Search} from 'semantic-ui-react';
 
@@ -10,6 +12,7 @@ export default class SearchComponent extends React.Component {
   constructor(props) {
     super(props);
     this.history = this.props.history;
+    this._isMounted = false;
     this.state = {
       isLoading: false,
       results: [],
@@ -22,18 +25,17 @@ export default class SearchComponent extends React.Component {
     this.handleSearchChange = this.handleSearchChange.bind(this);
   }
 
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
   async init() {
-    const catalogue = await Crunchyroll.search();
-    const source = _.times(catalogue.length, i => ({
-      id: catalogue[i].id,
-      title: catalogue[i].name,
-      description: catalogue[i].type,
-      image: catalogue[i].img,
-      link: catalogue[i].link,
-    }));
-    this.setState({
-      source: source,
-    });
+    const source = await Crunchyroll.search();
+    if (this._isMounted) {
+      this.setState({
+        source: source,
+      });
+    }
   }
 
   resetComponent() {
@@ -54,6 +56,7 @@ export default class SearchComponent extends React.Component {
       state: formatedSeries,
     };
 
+    //Store at current db to return after
     try {
       const doc = await db.current.get('series');
       const update = {
@@ -64,9 +67,11 @@ export default class SearchComponent extends React.Component {
         update._rev = doc._rev;
       }
       await db.current.put(update);
+      console.log('put update');
     } catch (e) {
       if (e.status === 404) {
         await db.current.put({_id: 'series', data: formatedSeries});
+        console.log('not found put new');
       }
     }
 
@@ -94,6 +99,10 @@ export default class SearchComponent extends React.Component {
 
   componentWillMount() {
     this.resetComponent();
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
   }
 
   render() {

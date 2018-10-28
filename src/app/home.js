@@ -15,10 +15,14 @@ import InfiniteScroll from 'react-infinite-scroller';
 export default class Home extends React.Component {
   constructor(props) {
     super(props);
+    //Scroll
     this.currentPage = 0;
     this.startPage = 0;
     this.hasMoreItems = true;
+    //location
     this.location = this.props.location;
+    //loading
+    this.isLoading = false;
     this.state = {
       series: [],
     };
@@ -30,6 +34,9 @@ export default class Home extends React.Component {
   }
 
   async init() {
+    //starts Loading..
+    this.isLoading = true;
+
     let current;
     try {
       current = await db.current.get('currentPage');
@@ -47,7 +54,7 @@ export default class Home extends React.Component {
     //No more items after page 16
     if (page > 16) {
       this.hasMoreItems = false;
-      console.log('Loaded all pages!');
+      console.log('Home: Loaded all pages!');
       return;
     }
     //get page
@@ -92,9 +99,14 @@ export default class Home extends React.Component {
   render() {
     const {series} = this.state;
 
+    //if series is ready, ends loading..
+    if (series.length > 0) {
+      this.isLoading = false;
+    }
+
     let home;
     //Default home screen
-    if (!Crunchyroll.isLoading) {
+    if (!this.isLoading) {
       home = (
         <div>
           <Navbar location={this.location} />
@@ -120,7 +132,7 @@ export default class Home extends React.Component {
       );
     }
     //Loading
-    if (Crunchyroll.isLoading) {
+    if (this.isLoading) {
       home = (
         <div>
           <Navbar location={this.location} />

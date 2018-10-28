@@ -3,7 +3,7 @@ import request from 'request-promise-native';
 import cheerio from 'cheerio';
 import {M3U} from 'playlist-parser';
 import electron from 'electron';
-import React from 'react';
+import _ from 'lodash';
 // db
 import db from '../db';
 //subtitles
@@ -17,8 +17,6 @@ const baseURL = 'https://www.crunchyroll.com';
 // API
 class Crunchyroll {
   constructor() {
-    this.isLoading = false;
-
     this.authCookies = null;
     this.isInited = this.init();
   }
@@ -39,7 +37,7 @@ class Crunchyroll {
 
   auth() {
     if (this.authCookies !== null) {
-      console.log('Logged in!');
+      console.log('Auth: Logged in!');
       return;
     }
 
@@ -55,7 +53,7 @@ class Crunchyroll {
     });
     //wait page finish loading
     loginWin.webContents.on('did-finish-load', () => {
-      console.log(loginWin.webContents.getURL());
+      console.log('Current URL: ', loginWin.webContents.getURL());
       //auth suceccesful
       if (loginWin.webContents.getURL() === 'https://www.crunchyroll.com/') {
         loginWin.webContents.session.cookies.get({}, async (error, cookies) => {
@@ -63,12 +61,11 @@ class Crunchyroll {
             console.log('Error: Failed to get cookies');
             return;
           }
-          //console.log('cookies', error, cookies);
           //Store auth cookies (filter for crunchyroll cookies only)
           this.authCookies = cookies.filter(c => c.domain.includes('crunchyroll.com'));
           await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
           this.authCookies = await db.auth.get('crunchyroll');
-          console.log('Saved cookies');
+          console.log('Auth: Saved cookies');
           //closes window
           loginWin.close();
         });
@@ -86,13 +83,11 @@ class Crunchyroll {
   }
 
   async getAllSeries(page = 0) {
-    //Loading
-    this.isLoading = true;
     // wait for auth
     await this.isInited;
 
     // load catalogue
-    console.log('Getting popular series');
+    console.log('Crunchy: Getting popular series');
 
     const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`).catch(function(err) {
       console.log('Failed');
@@ -134,8 +129,7 @@ class Crunchyroll {
       console.log('failed again');
       series = null;
     }
-    //Ends loading
-    this.isLoading = false;
+
     return series;
   }
 
@@ -143,7 +137,7 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Getting episodes for ', series.url);
+    console.log('Crunchy: Getting episodes for ', series.url);
     // load episodes
     const data = await request(series.url);
     const $ = cheerio.load(data);
@@ -181,7 +175,6 @@ class Crunchyroll {
       })
       .get();
 
-    // console.log(episodes);
     // store in the db
     await db.episodes.bulkDocs(episodes);
     return episodes;
@@ -207,7 +200,6 @@ class Crunchyroll {
       rating,
     };
 
-    // console.log(anime);
     await db.info.bulkDocs(anime);
     return anime;
   }
@@ -282,7 +274,6 @@ class Crunchyroll {
     const streamFileData = await request(streamFile);
     const playlist = M3U.parse(streamFileData);
 
-    console.log(subtitlesInfo);
     //subtitles
     const englishSubs = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('Brasil')).pop();
     const subData = await request(englishSubs.link);
@@ -394,7 +385,7 @@ class Crunchyroll {
     //store in db
     await db.bookmarkSeries.bulkDocs(items);
 
-    console.log('My series: ', items);
+    console.log('My: ', items);
     return items;
   }
   async search() {
@@ -416,19 +407,16 @@ class Crunchyroll {
     //series filter
     const series = catalogue.data.filter(it => it.type === 'Series');
 
-    /*
-    //matches
-    const matches = series.filter(it => it.name.toLowerCase().includes(query.toLowerCase())).map(it => ({
-      _id: it.link,
-      source: 'crunchyroll',
-      title: it.name,
-      url: `${baseURL}${it.link}`,
-      image: it.img,
-      count: '',
+    //source for search component
+    const source = _.times(series.length, i => ({
+      id: series[i].id,
+      title: series[i].name,
+      description: series[i].type,
+      image: series[i].img,
+      link: series[i].link,
     }));
-    */
 
-    return series;
+    return source;
   }
 }
 

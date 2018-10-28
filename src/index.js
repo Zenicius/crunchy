@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import {BrowserRouter, Route, Switch} from 'react-router-dom';
+import {HashRouter, Route, Switch} from 'react-router-dom';
 //pages
 import Home from './app/home';
 import My from './app/my';
@@ -12,7 +12,7 @@ import {Container} from 'semantic-ui-react';
 
 // render on page
 ReactDOM.render(
-  <BrowserRouter>
+  <HashRouter>
     <Container fluid>
       <Switch>
         <Route exact path="/" component={Home} />
@@ -23,6 +23,6 @@ ReactDOM.render(
         <Route component={Home} />
       </Switch>
     </Container>
-  </BrowserRouter>,
+  </HashRouter>,
   document.getElementById('app')
 );

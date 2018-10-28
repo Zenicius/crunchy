@@ -9,12 +9,13 @@ import {Crunchyroll} from '../crunchyroll';
 //components
 import Episodes from '../components/episodes';
 //ui
-import {Grid, Button, Icon} from 'semantic-ui-react';
+import {Grid, Button, Icon, Message} from 'semantic-ui-react';
 
 export default class Series extends React.Component {
   constructor(props) {
     super(props);
-
+    this.isLoading = false;
+    this.series = null;
     this.state = {
       episodes: [],
     };
@@ -40,6 +41,7 @@ export default class Series extends React.Component {
       .debounceTime(1000)
       .subscribe(episodes => this.setState({episodes}));
   }
+
   componentWillUnmount() {
     this.sub.unsubscribe();
   }
@@ -55,6 +57,11 @@ export default class Series extends React.Component {
   }
 
   async init(props) {
+    //Series to show at loading
+    this.series = this.props.location.state;
+    //Starts Loading..
+    this.isLoading = true;
+
     const series = await this.getSeries(props);
     Crunchyroll.getEpisodes(series);
   }
@@ -62,24 +69,60 @@ export default class Series extends React.Component {
   render() {
     const {episodes} = this.state;
 
-    let episodesPage = (
-      <div>
-        <Link to="/">
-          <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="arrow left" />
-            Back
-          </Button>
-        </Link>
-        <Grid columns="equal">
-          <Grid.Row stretched>
-            {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
-          </Grid.Row>
-        </Grid>
-      </div>
-    );
+    let title;
+    if (this.series == undefined) {
+      title = 'Episodes';
+    } else {
+      title = this.series.title;
+    }
+
+    //if episodes is ready, ends loading.
+    if (episodes.length > 0) {
+      this.isLoading = false;
+    }
+
+    let series;
+    //Main series page
+    if (!this.isLoading) {
+      series = (
+        <div>
+          <Link to="/">
+            <Button icon labelPosition="left" color="grey" className="button">
+              <Icon name="arrow left" />
+              Back
+            </Button>
+          </Link>
+          <Grid columns="equal">
+            <Grid.Row stretched>
+              {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
+            </Grid.Row>
+          </Grid>
+        </div>
+      );
+    }
+    //Loading..
+    if (this.isLoading) {
+      series = (
+        <div>
+          <Link to="/">
+            <Button icon labelPosition="left" color="grey" className="button">
+              <Icon name="arrow left" />
+              Back
+            </Button>
+          </Link>
+          <Message icon>
+            <Icon name="circle notched" loading />
+            <Message.Content>
+              <Message.Header>Loading {title}</Message.Header>
+              Just one second!
+            </Message.Content>
+          </Message>
+        </div>
+      );
+    }
     return (
       <div>
-        {episodesPage}
+        {series}
       </div>
     );
   }

@@ -7,9 +7,10 @@ import db from '../db';
 //api
 import {Crunchyroll} from '../crunchyroll';
 //components
+import SeriesInfo from '../components/seriesinfo';
 import Episodes from '../components/episodes';
 //ui
-import {Grid, Button, Icon, Message} from 'semantic-ui-react';
+import {Grid, Button, Icon, Message, Divider} from 'semantic-ui-react';
 
 export default class Series extends React.Component {
   constructor(props) {
@@ -18,6 +19,7 @@ export default class Series extends React.Component {
     this.series = null;
     this.state = {
       episodes: [],
+      info: null,
     };
 
     this.init(props);
@@ -63,11 +65,16 @@ export default class Series extends React.Component {
     this.isLoading = true;
 
     const series = await this.getSeries(props);
-    Crunchyroll.getEpisodes(series);
+    await Crunchyroll.getEpisodes(series);
+
+    const info = await Crunchyroll.getInfo(series);
+    this.setState({
+      info: info,
+    });
   }
 
   render() {
-    const {episodes} = this.state;
+    const {episodes, info} = this.state;
 
     let title;
     if (this.series == undefined) {
@@ -76,8 +83,8 @@ export default class Series extends React.Component {
       title = this.series.title;
     }
 
-    //if episodes is ready, ends loading.
-    if (episodes.length > 0) {
+    //if episodes and info is ready, ends loading.
+    if (episodes.length > 0 && info !== null) {
       this.isLoading = false;
     }
 
@@ -86,12 +93,8 @@ export default class Series extends React.Component {
     if (!this.isLoading) {
       series = (
         <div>
-          <Link to="/">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="arrow left" />
-              Back
-            </Button>
-          </Link>
+          <SeriesInfo info={info} />
+          <Divider horizontal>Episodes</Divider>
           <Grid columns="equal">
             <Grid.Row stretched>
               {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
@@ -104,12 +107,6 @@ export default class Series extends React.Component {
     if (this.isLoading) {
       series = (
         <div>
-          <Link to="/">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="arrow left" />
-              Back
-            </Button>
-          </Link>
           <Message icon>
             <Icon name="circle notched" loading />
             <Message.Content>
@@ -122,6 +119,12 @@ export default class Series extends React.Component {
     }
     return (
       <div>
+        <Link to="/">
+          <Button icon labelPosition="left" color="grey" className="button">
+            <Icon name="arrow left" />
+            Back
+          </Button>
+        </Link>
         {series}
       </div>
     );

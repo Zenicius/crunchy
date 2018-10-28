@@ -19,6 +19,27 @@ body{
     text-align: center;
 }
 
-.search{
-    text-align: right
+.infoContainer{
+    display: flex;
+    margin-top: 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+    align-items: flex-start;   
+}
+
+.info{
+    margin-left: 20px;   
+}
+
+.infoHeader{
+    text-shadow: 4px 2px 9px rgba(150, 150, 150, 1);
+    font-weight: bold;
+}
+
+.infoDescription{
+    font-size: 15px;
+}
+
+.infoImage{
+    box-shadow: 4px 6px 5px 0px rgba(0,0,0,0.75);
 }

@@ -189,18 +189,29 @@ class Crunchyroll {
     const data = await request(series.url);
     const $ = cheerio.load(data);
     // info
+    const title = $('[itemprop=name]').text();
     const sidebar = $('ul.list-block');
     const image = $('img', sidebar).attr('src');
     const description = $('span.more', sidebar).text().trim();
     const rating = $('span.rating-widget-static-large', sidebar).attr('content');
+    const publisher = $('a[href*="publisher"]', sidebar).text();
+    const genres = [];
+    $('a[href*="genres"]', sidebar).each((index, el) => {
+      const genre = $(el).text();
+      genres[index] = genre.slice(0, 1).toUpperCase() + genre.slice(1);
+    });
+
     // anime
     const anime = {
+      title,
       image,
       description,
       rating,
+      genres,
+      publisher,
     };
 
-    await db.info.bulkDocs(anime);
+    //await db.info.bulkDocs(anime);
     return anime;
   }
 

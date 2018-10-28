@@ -55,7 +55,7 @@ export default withRouter(({episode, history}) => {
     <Grid.Column width="5">
       <Card>
         <Card.Content>
-          <Image floated="left" size="small" src={episode.image} />
+          <Image floated="left" size="tiny" src={episode.image} />
           <Card.Header>{episode.seriesTitle}</Card.Header>
           <Card.Meta>{episode.seriesNext}</Card.Meta>
           <Card.Description>

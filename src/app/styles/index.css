@@ -22,7 +22,7 @@ body{
 .infoContainer{
     display: flex;
     margin-top: 20px;
-    margin-left: 20px;
+    margin-left: 25px;
     margin-right: 20px;
     align-items: flex-start;   
 }
@@ -36,10 +36,26 @@ body{
     font-weight: bold;
 }
 
+.infoDescriptionContainer{
+    margin-top: 40px;
+}
+
 .infoDescription{
     font-size: 15px;
 }
 
 .infoImage{
     box-shadow: 4px 6px 5px 0px rgba(0,0,0,0.75);
+}
+
+.infoButtonContainer{
+    margin-top: 140px;
+}
+
+.infoBookmarkButton{
+    box-shadow: 5px 10px 10px -5px rgba(0,0,0,0.75);
+}
+
+.infoRating{
+    margin-top: 15px;
 }

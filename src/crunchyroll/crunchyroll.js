@@ -185,14 +185,16 @@ class Crunchyroll {
     await this.isInited;
 
     console.log('Getting info for ', series.url);
-    // load info
+
+    //Loads data
     const data = await request(series.url);
+    // load info
     const $ = cheerio.load(data);
     // info
     const title = $('[itemprop=name]').text();
     const sidebar = $('ul.list-block');
     const image = $('img', sidebar).attr('src');
-    const description = $('span.more', sidebar).text().trim();
+    const description = $('span.more', sidebar).text().trim() || $('span.trunc-desc', sidebar).text().trim();
     const rating = $('span.rating-widget-static-large', sidebar).attr('content');
     const publisher = $('a[href*="publisher"]', sidebar).text();
     const genres = [];
@@ -201,18 +203,51 @@ class Crunchyroll {
       genres[index] = genre.slice(0, 1).toUpperCase() + genre.slice(1);
     });
 
-    // anime
-    const anime = {
+    // id for bookmark serie
+    const id = $('div.show-actions', sidebar).attr('group_id');
+
+    let bookmarked = false;
+    //check if series is bookmarked
+    if (this.authCookies !== null) {
+      // add auth cookies
+      const jar = request.jar();
+      this.authCookies.cookies.forEach(data => {
+        const cookie = request.cookie(`${data.name}=${data.value}`);
+        jar.setCookie(cookie, `${baseURL}${data.path}`);
+      });
+
+      // request page html
+      const data = await request({
+        url: `${baseURL}/home/queue`,
+        jar,
+      });
+      //cheerio cursor
+      const $ = cheerio.load(data);
+
+      $('div.queue-controls > a.left', 'ul.landscape-grid').each((index, element) => {
+        if ($(element).attr('href') === series._id) {
+          bookmarked = true;
+          return;
+        }
+      });
+    } else {
+      //user not logged in
+      bookmarked = null;
+    }
+
+    // series info
+    const info = {
+      id,
       title,
       image,
       description,
       rating,
       genres,
       publisher,
+      bookmarked,
     };
 
-    //await db.info.bulkDocs(anime);
-    return anime;
+    return info;
   }
 
   async getEpisode(episode) {
@@ -428,6 +463,57 @@ class Crunchyroll {
     }));
 
     return source;
+  }
+
+  async bookmarkSeries(option = 1, id) {
+    await this.isInited;
+
+    //not logged in
+    if (this.authCookies == null) {
+      return;
+    }
+
+    //defines cookies
+    const jar = request.jar();
+    this.authCookies.cookies.forEach(data => {
+      const cookie = request.cookie(`${data.name}=${data.value}`);
+      jar.setCookie(cookie, `${baseURL}${data.path}`);
+    });
+
+    let options;
+    if (option == 1) {
+      //Add to bookmarks
+      options = {
+        method: 'POST',
+        uri: 'https://www.crunchyroll.com/ajax/',
+        jar,
+        formData: {
+          req: 'RpcApiUserQueue_Add',
+          group_id: id,
+        },
+      };
+    } else if (option == 2) {
+      //Delete from bookmarks
+      options = {
+        method: 'POST',
+        uri: 'https://www.crunchyroll.com/ajax/',
+        jar,
+        formData: {
+          req: 'RpcApiUserQueue_Delete',
+          group_id: id,
+        },
+      };
+    }
+
+    //Send request
+    await request(options).then(function(response) {
+      //Log response
+      let jsonResponse = response.slice(10);
+      jsonResponse = jsonResponse.substring(0, jsonResponse.length - 3);
+      const jsonObject = JSON.parse(jsonResponse);
+
+      console.log(jsonObject.message_list[0].type, ': ', jsonObject.message_list[0].message_body);
+    });
   }
 }
 

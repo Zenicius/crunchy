@@ -3,7 +3,7 @@ import React from 'react';
 //api
 import {Crunchyroll} from '../crunchyroll';
 //ui
-import {Message, Button, Icon} from 'semantic-ui-react';
+import {Message, Button, Icon, Divider} from 'semantic-ui-react';
 
 export default class Episode extends React.Component {
   constructor(props) {
@@ -69,6 +69,7 @@ export default class Episode extends React.Component {
     //Loading default
     let body = (
       <div>
+        <Divider />
         <Message icon>
           <Icon name="circle notched" loading />
           <Message.Content>
@@ -84,25 +85,31 @@ export default class Episode extends React.Component {
       if (file.err == null) {
         this.isPlaying = true;
         body = (
-          <video
-            id="video"
-            className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid"
-            controls
-            autoPlay
-            preload="auto"
-          >
-            <source src={file.url} type={file.type} />
-          </video>
+          <div>
+            <Divider />
+            <video
+              id="video"
+              className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid"
+              controls
+              autoPlay
+              preload="auto"
+            >
+              <source src={file.url} type={file.type} />
+            </video>
+          </div>
         );
       } else {
         body = (
-          <Message negative icon>
-            <Icon name="info" />
-            <Message.Content>
-              <Message.Header>{file.err}</Message.Header>
-              You are probably trying to load a premium episode not being logged-in !
-            </Message.Content>
-          </Message>
+          <div>
+            <Divider />
+            <Message negative icon>
+              <Icon name="info" />
+              <Message.Content>
+                <Message.Header>{file.err}</Message.Header>
+                You are probably trying to load a premium episode not being logged-in !
+              </Message.Content>
+            </Message>
+          </div>
         );
       }
     }

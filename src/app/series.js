@@ -26,6 +26,7 @@ export default class Series extends React.Component {
   }
 
   async componentDidMount() {
+    //Series to filter
     const series = await this.getSeries(this.props);
 
     this.sub = Observable.fromEvent(
@@ -107,6 +108,7 @@ export default class Series extends React.Component {
     if (this.isLoading) {
       series = (
         <div>
+          <Divider />
           <Message icon>
             <Icon name="circle notched" loading />
             <Message.Content>

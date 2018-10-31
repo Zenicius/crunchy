@@ -372,6 +372,8 @@ class Crunchyroll {
     const items = $('li.queue-item', mainContent)
       .map((index, el) => {
         const element = $(el);
+        //id for boomarking
+        const bookmarkId = element.attr('series_id');
         //image
         const imageContainer = $('div.episode-img', element);
         const image = $('img', imageContainer).attr('src');
@@ -389,6 +391,7 @@ class Crunchyroll {
 
         return {
           _id,
+          bookmarkId,
           image,
           episodeTitle,
           episodeUrl,

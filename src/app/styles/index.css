@@ -59,3 +59,45 @@ body{
 .infoRating{
     margin-top: 15px;
 }
+
+.BEContainer{
+    background-color: whitesmoke;
+    outline: 1px solid gray;
+    display: flex;
+    margin-top: 10px;
+    margin-left: 25px;
+    margin-right: 20px;
+    align-items: flex-start;
+    padding: 25px;   
+}
+
+.BEImage{
+    box-shadow: 4px 6px 5px 0px rgba(0,0,0,0.75);
+}
+
+
+.BE{
+    margin-left: 30px;
+}
+
+.BETitle{
+    text-shadow: 2px 1px 6px rgba(150, 150, 150, 1);
+    font-weight: bold;
+}
+
+.BEButtonContainer{
+    margin-top: 20px;
+}
+
+.BEremoveButton{
+    justify-self: flex-end;
+}
+
+.BELoading{
+    background-color: whitesmoke;
+    outline: 1px solid gray;
+    margin-top: 10px;
+    margin-left: 25px;
+    margin-right: 20px;
+    padding: 25px;   
+}

@@ -83,11 +83,7 @@ export default class My extends React.Component {
       my = (
         <div>
           <Navbar location={this.location} />
-          <Grid>
-            <Grid.Row stretched>
-              {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} />)}
-            </Grid.Row>
-          </Grid>
+          {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} location={this.location} />)}
         </div>
       );
     }

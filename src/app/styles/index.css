@@ -101,3 +101,17 @@ body{
     margin-right: 20px;
     padding: 25px;   
 }
+
+.subSettingsContainer{
+    margin-left: 15px;
+}
+
+.subSettingsMessage{
+    color: green;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.subSettingsNote{
+    margin-top: 20px;
+}

@@ -9,7 +9,7 @@ import {Crunchyroll} from '../crunchyroll';
 import Navbar from '../components/navbar';
 import BookmarkEpisodes from '../components/bookmarkedEpisodes';
 //ui
-import {Grid, Icon, Message} from 'semantic-ui-react';
+import {Icon, Message} from 'semantic-ui-react';
 
 export default class My extends React.Component {
   constructor(props) {

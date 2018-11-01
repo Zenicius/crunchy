@@ -26,6 +26,8 @@ export default class Series extends React.Component {
   }
 
   async componentDidMount() {
+    this._isMounted = true;
+
     //Series to filter
     const series = await this.getSeries(this.props);
 
@@ -46,6 +48,8 @@ export default class Series extends React.Component {
   }
 
   componentWillUnmount() {
+    this._isMounted = false;
+
     this.sub.unsubscribe();
   }
 
@@ -69,9 +73,11 @@ export default class Series extends React.Component {
     await Crunchyroll.getEpisodes(series);
 
     const info = await Crunchyroll.getInfo(series);
-    this.setState({
-      info: info,
-    });
+    if (this._isMounted) {
+      this.setState({
+        info: info,
+      });
+    }
   }
 
   render() {

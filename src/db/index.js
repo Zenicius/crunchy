@@ -7,6 +7,7 @@ const db = {
   current: new PouchDB('current', {adapter: 'memory'}),
   auth: new PouchDB('auth'),
   bookmarkSeries: new PouchDB('bookmarkSeries'),
+  settings: new PouchDB('settings'),
 };
 
 export default db;

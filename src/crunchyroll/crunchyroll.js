@@ -86,49 +86,41 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    // load catalogue
+    // load home series
     console.log('Crunchy: Getting popular series');
 
-    const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`).catch(function(err) {
-      console.log('Failed');
-      return;
-    });
+    // get page
+    const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`);
     // create cheerio cursor
-    let $;
-    //series
-    let series;
-    if (data !== undefined || null) {
-      $ = cheerio.load(data);
-      series = $('li.group-item')
-        .map((index, el) => {
-          const element = $(el);
-          // get title & url
-          const title = $('a', element).attr('title');
-          const _id = $('a', element).attr('href');
-          const url = `${baseURL}${_id}`;
-          // get image
-          const image = $('img', element).attr('src');
-          // get videos count
-          const seriesData = $('.series-data', element);
-          const count = parseInt(seriesData.text().trim().replace('Videos', '').trim(), 10);
-          // return series data
-          return {
-            _id,
-            source: 'crunchyroll',
-            title,
-            url,
-            image,
-            count,
-          };
-        })
-        .get();
+    const $ = cheerio.load(data);
+    // series
+    const series = $('li.group-item')
+      .map((index, el) => {
+        const element = $(el);
+        // get title & url
+        const title = $('a', element).attr('title');
+        const _id = $('a', element).attr('href');
+        const url = `${baseURL}${_id}`;
+        // get image
+        const image = $('img', element).attr('src');
+        // get videos count
+        const seriesData = $('.series-data', element);
+        const count = parseInt(seriesData.text().trim().replace('Videos', '').trim(), 10);
 
-      //add to database
-      await db.series.bulkDocs(series);
-    } else {
-      console.log('failed again');
-      series = null;
-    }
+        // return series data
+        return {
+          _id,
+          source: 'crunchyroll',
+          title,
+          url,
+          image,
+          count,
+        };
+      })
+      .get();
+
+    //add to database
+    await db.series.bulkDocs(series);
 
     return series;
   }
@@ -299,6 +291,7 @@ class Crunchyroll {
     let subtitles = null, url = null, type = null;
     //error
     let err = null;
+    let errMessage = null;
 
     const xmlObj = await parseXml(xmlData);
     const preload = xmlObj['config:Config']['default:preload'][0];
@@ -309,9 +302,12 @@ class Crunchyroll {
       subtitlesInfo = preload.subtitles[0].subtitle;
     } catch (e) {
       err = 'Failed to load episode';
+      errMessage = 'You are probably trying to load a premium episode not being logged-in !';
       console.log('Failed to load episode (episode is probably premium)');
-      return {subtitles, url, type, err};
+      return {subtitles, url, type, err, errMessage};
     }
+
+    console.log(subtitlesInfo);
 
     const streamInfo = preload.stream_info[0];
     const streamFile = streamInfo.file[0];
@@ -320,9 +316,34 @@ class Crunchyroll {
     const streamFileData = await request(streamFile);
     const playlist = M3U.parse(streamFileData);
 
+    //get preferred subtitles from db
+    let preferred, preferredSub;
+    try {
+      preferred = await db.settings.get('preferredSubtitles');
+      preferredSub = preferred.title;
+    } catch (e) {
+      if (e.name == 'not_found');
+      preferredSub = 'English';
+    }
+
     //subtitles
-    const englishSubs = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('Brasil')).pop();
-    const subData = await request(englishSubs.link);
+    let sub;
+    //get subtitles by user preferred
+    sub = subtitlesInfo.map(s => s.$).filter(s => s.title.includes(preferredSub)).pop();
+    if (sub == undefined || sub == null) {
+      //preferred subtitle not available
+      sub = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('English')).pop();
+      console.log('Preferred Subtitles not found, setting it to english!');
+      if (sub == undefined || sub == null) {
+        //english not available either
+        err = 'Failed to load subtitles';
+        errMessage = 'Try checking if preferred subtitles is avaible for this series!';
+        console.log('Failed to load subtitles (default subtitles not available either)');
+        return {subtitles, url, type, err, errMessage};
+      }
+    }
+
+    const subData = await request(sub.link);
     const subsObj = await parseXml(subData);
     const subsId = parseInt(subsObj.subtitle.$.id, 10);
     const subsIv = subsObj.subtitle.iv.pop();
@@ -387,7 +408,7 @@ class Crunchyroll {
         const seriesUrl = $('div.queue-controls > a.left', element).attr('href');
         const description = $('.short-desc', seriesInfo).text().trim();
         //id
-        const _id = episodeUrl;
+        const _id = seriesUrl;
 
         return {
           _id,

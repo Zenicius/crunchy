@@ -106,7 +106,7 @@ export default class Episode extends React.Component {
               <Icon name="info" />
               <Message.Content>
                 <Message.Header>{file.err}</Message.Header>
-                You are probably trying to load a premium episode not being logged-in !
+                {file.errMessage}
               </Message.Content>
             </Message>
           </div>

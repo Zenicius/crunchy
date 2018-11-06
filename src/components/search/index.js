@@ -6,7 +6,7 @@ import {Crunchyroll} from '../../crunchyroll';
 //db
 import db from '../../db';
 //ui
-import {Search} from 'semantic-ui-react';
+import {Search, Divider} from 'semantic-ui-react';
 
 export default class SearchComponent extends React.Component {
   constructor(props) {
@@ -109,14 +109,16 @@ export default class SearchComponent extends React.Component {
     const {isLoading, value, results} = this.state;
 
     return (
-      <Search
-        loading={isLoading}
-        onResultSelect={this.handleResultSelect}
-        onSearchChange={_.debounce(this.handleSearchChange, 500, {leading: true})}
-        results={results}
-        value={value}
-        {...this.props}
-      />
+      <div>
+        <Search
+          loading={isLoading}
+          onResultSelect={this.handleResultSelect}
+          onSearchChange={_.debounce(this.handleSearchChange, 500, {leading: true})}
+          results={results}
+          value={value}
+          {...this.props}
+        />
+      </div>
     );
   }
 }

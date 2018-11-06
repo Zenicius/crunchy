@@ -35,21 +35,25 @@ class Crunchyroll {
     }
   }
 
-  auth() {
+  auth(component) {
     if (this.authCookies !== null) {
       console.log('Auth: Logged in!');
       return;
     }
 
-    //new window
     const remote = electron.remote;
+    //main window
+    const mainWindow = remote.getCurrentWindow();
     const BrowserWindow = remote.BrowserWindow;
-    let loginWin = new BrowserWindow({width: 800, height: 600});
+    // creat new window
+    let loginWin = new BrowserWindow({width: 800, height: 600, parent: mainWindow, modal: true});
     //disable menu
     loginWin.setMenu(null);
     //cleanup
     loginWin.on('closed', () => {
       loginWin = null;
+      //Handle login complete at navbar
+      component.handleLoginCompleted();
     });
     //wait page finish loading
     loginWin.webContents.on('did-finish-load', () => {
@@ -77,9 +81,57 @@ class Crunchyroll {
   }
 
   async logout() {
-    //Reset cookies from db
+    // remover user from db
+    const user = await db.current.get('user');
+    await db.current.remove(user);
+
+    // Remove cookies from db
     await db.auth.remove(this.authCookies);
     this.authCookies = null;
+  }
+
+  async getUser() {
+    // wait for auth
+    await this.isInited;
+
+    if (this.authCookies == null) return;
+
+    // add auth cookies
+    const jar = request.jar();
+    this.authCookies.cookies.forEach(data => {
+      const cookie = request.cookie(`${data.name}=${data.value}`);
+      jar.setCookie(cookie, `${baseURL}${data.path}`);
+    });
+
+    // request page html
+    const data = await request({
+      url: baseURL,
+      jar,
+    });
+
+    let $ = cheerio.load(data);
+    // get username and profile page
+    const link = $('a', 'li.username').attr('href');
+    const name = $('a', 'li.username').text().trim();
+
+    const dataProfile = await request({
+      url: `${baseURL}${link}`,
+      jar,
+    });
+
+    $ = cheerio.load(dataProfile);
+    // get user image
+    const image = $('img.library-poster').attr('src');
+
+    const user = {
+      link,
+      name,
+      image,
+    };
+
+    await db.current.put({_id: 'user', link: user.link, name: user.name, image: user.image});
+
+    return user;
   }
 
   async getAllSeries(page = 0) {
@@ -176,7 +228,7 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Getting info for ', series.url);
+    console.log('Crunchy: Getting info for ', series.url);
 
     //Loads data
     const data = await request(series.url);

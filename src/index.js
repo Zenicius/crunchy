@@ -9,11 +9,13 @@ import Series from './app/series';
 import Episode from './app/episode';
 //ui
 import {Container} from 'semantic-ui-react';
+import Navbar from './components/navbar';
 
 // render on page
 ReactDOM.render(
   <HashRouter>
     <Container fluid>
+      <Navbar />
       <Switch>
         <Route exact path="/" component={Home} />
         <Route exact path="/my" component={My} />

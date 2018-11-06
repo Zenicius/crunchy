@@ -6,7 +6,6 @@ import db from '../db';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //components
-import Navbar from '../components/navbar';
 import Series from '../components/series';
 //ui
 import {Grid, Message, Icon} from 'semantic-ui-react';
@@ -109,25 +108,26 @@ export default class Home extends React.Component {
     if (!this.isLoading) {
       home = (
         <div>
-          <Navbar location={this.location} />
-          <InfiniteScroll
-            pageStart={this.startPage}
-            loadMore={this.loadItems.bind(this)}
-            hasMore={this.hasMoreItems}
-            loader={
-              <div className="loader" key={0}>
-                <h1>Loading...</h1>
+          <div className="MainContent">
+            <InfiniteScroll
+              pageStart={this.startPage}
+              loadMore={this.loadItems.bind(this)}
+              hasMore={this.hasMoreItems}
+              loader={
+                <div className="loader" key={0}>
+                  <h1>Loading...</h1>
+                </div>
+              }
+            >
+              <div className="tracks">
+                <Grid columns="equal">
+                  <Grid.Row stretched>
+                    {series.map(s => <Series key={s._id} series={s} />)}
+                  </Grid.Row>
+                </Grid>
               </div>
-            }
-          >
-            <div className="tracks">
-              <Grid columns="equal">
-                <Grid.Row stretched>
-                  {series.map(s => <Series key={s._id} series={s} />)}
-                </Grid.Row>
-              </Grid>
-            </div>
-          </InfiniteScroll>
+            </InfiniteScroll>
+          </div>
         </div>
       );
     }
@@ -135,14 +135,15 @@ export default class Home extends React.Component {
     if (this.isLoading) {
       home = (
         <div>
-          <Navbar location={this.location} />
-          <Message icon>
-            <Icon name="circle notched" loading />
-            <Message.Content>
-              <Message.Header>Loading Crunchy..</Message.Header>
-              Just one second!
-            </Message.Content>
-          </Message>
+          <div className="MainContent">
+            <Message icon>
+              <Icon name="circle notched" loading />
+              <Message.Content>
+                <Message.Header>Loading Crunchy..</Message.Header>
+                Just one second!
+              </Message.Content>
+            </Message>
+          </div>
         </div>
       );
     }

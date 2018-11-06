@@ -48,8 +48,8 @@ export default class SeriesInfo extends React.Component {
 
     // if theres genres tags, organize it
     let genres = '';
+    let genresContainer;
     if (info.genres[0] !== undefined) {
-      genres = ' - ';
       this.state.info.genres.forEach(function(element, index) {
         if (index == info.genres.length - 1) {
           genres += element;
@@ -57,7 +57,9 @@ export default class SeriesInfo extends React.Component {
           genres += element + ' / ';
         }
       });
-    }
+      genresContainer = <Header className="infoGenres" as="h4">Genres: {genres}</Header>;
+    } else
+      genresContainer = null;
 
     //Switch Bookmark button
     let bookmarkButton;
@@ -94,8 +96,10 @@ export default class SeriesInfo extends React.Component {
         <Image className="infoImage" size="medium" src={info.image} />
         <div className="info">
           <Header className="infoHeader" as="h1">{info.title}</Header>
-          <Header className="infoPublisher" as="h4">{info.publisher}{genres}</Header>
+          <Header className="infoPublisher" as="h4">{info.publisher}</Header>
+          {genresContainer}
           <div className="infoDescriptionContainer">
+            <Header className="infoDescriptionTitle" as="h4">Description:</Header>
             <p className="infoDescription">{info.description}</p>
             <Rating className="infoRating" defaultRating={info.rating} maxRating={5} disabled />
           </div>

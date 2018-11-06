@@ -1,5 +1,13 @@
 body{
     background-color: #e2e2e2;
+    -webkit-user-select: none;
+	-webkit-user-drag: none;
+	-webkit-app-region: no-drag;
+	cursor: default;
+}
+
+.MainContent{
+    margin-top: 50px;
 }
 
 .ui.yellow.card{
@@ -102,6 +110,11 @@ body{
     padding: 25px;   
 }
 
+.settingsMainHeader{
+    text-align: center;
+    margin-bottom: 30px;
+}
+
 .subSettingsContainer{
     margin-left: 15px;
 }
@@ -112,6 +125,6 @@ body{
     font-weight: bold;
 }
 
-.subSettingsNote{
-    margin-top: 20px;
+.subDropdown {
+    margin-bottom: 10px;
 }

@@ -6,7 +6,6 @@ import db from '../db';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //components
-import Navbar from '../components/navbar';
 import BookmarkEpisodes from '../components/bookmarkedEpisodes';
 //ui
 import {Icon, Message} from 'semantic-ui-react';
@@ -82,8 +81,9 @@ export default class My extends React.Component {
     if (!this.isLoading) {
       my = (
         <div>
-          <Navbar location={this.location} />
-          {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} location={this.location} />)}
+          <div className="MainContent">
+            {episodes.map(epi => <BookmarkEpisodes key={epi._id} episode={epi} location={this.location} />)}
+          </div>
         </div>
       );
     }
@@ -91,14 +91,15 @@ export default class My extends React.Component {
     if (this.isLoading) {
       my = (
         <div>
-          <Navbar location={this.location} />
-          <Message icon>
-            <Icon name="circle notched" loading />
-            <Message.Content>
-              <Message.Header>Loading Your Series..</Message.Header>
-              Just one second!
-            </Message.Content>
-          </Message>
+          <div className="MainContent">
+            <Message icon>
+              <Icon name="circle notched" loading />
+              <Message.Content>
+                <Message.Header>Loading Your Series..</Message.Header>
+                Just one second!
+              </Message.Content>
+            </Message>
+          </div>
         </div>
       );
     }
@@ -106,14 +107,15 @@ export default class My extends React.Component {
     if (!this.isLoggedin) {
       my = (
         <div>
-          <Navbar location={this.location} />
-          <Message negative icon>
-            <Icon name="info" />
-            <Message.Content>
-              <Message.Header>You are not logged-in!</Message.Header>
-              Go to settings page to peform login..
-            </Message.Content>
-          </Message>
+          <div className="MainContent">
+            <Message negative icon>
+              <Icon name="info" />
+              <Message.Content>
+                <Message.Header>You are not logged-in!</Message.Header>
+                Click on the user button to peform login..
+              </Message.Content>
+            </Message>
+          </div>
         </div>
       );
     }

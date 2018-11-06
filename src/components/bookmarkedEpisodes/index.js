@@ -27,12 +27,13 @@ class BookmarkedEpisode extends React.Component {
   //Open Episode
   async openEpisode() {
     const baseURL = 'https://www.crunchyroll.com';
-    const id = this.state.episode._id.substring(0, this.state.episode.episodeUrl.indexOf('?'));
+    const id = this.state.episode.episodeUrl.substring(0, this.state.episode.episodeUrl.indexOf('?'));
     const formatedEpisode = {
       url: `${baseURL}${id}`,
     };
+    console.log('this', this.state.episode);
     const location = {
-      pathname: `/episode${this.state.episode._id}`,
+      pathname: `/episode${id}`,
       state: formatedEpisode,
     };
     this.history.push(location);

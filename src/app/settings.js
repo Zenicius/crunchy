@@ -1,13 +1,10 @@
 //npm
 import React from 'react';
-//api
-import {Crunchyroll} from '../crunchyroll';
+import {Link} from 'react-router-dom';
 //db
 import db from '../db';
-//components
-import Navbar from '../components/navbar';
 //ui
-import {Button, Icon, Card, Divider, Dropdown, Header} from 'semantic-ui-react';
+import {Button, Icon, Divider, Dropdown, Header} from 'semantic-ui-react';
 
 export default class Settings extends React.Component {
   constructor(props) {
@@ -76,9 +73,6 @@ export default class Settings extends React.Component {
     const loading = this.state.loading;
     const justSaved = this.state.justSaved;
 
-    //Verifies if exists auth cookies
-    const loggedIn = Crunchyroll.authCookies !== null;
-
     //Subtitles options
     const subOptions = [
       {
@@ -127,64 +121,34 @@ export default class Settings extends React.Component {
 
     return (
       <div>
-        <Navbar location={this.location} />
-        <div className="content">
-          <div className="settings">
-            <Divider horizontal>Crunchyroll</Divider>
-            <Card color="yellow">
-              <Card.Content>
-                <Card.Header>Crunchyroll</Card.Header>
-                <Card.Description>
-                  Login at Crunchyroll to see premimum videos and quality!
-                </Card.Description>
-              </Card.Content>
-              <Card.Content extra>
-                {loggedIn
-                  ? <Button
-                      icon
-                      labelPosition="left"
-                      color="grey"
-                      href="#crlogout"
-                      className="button"
-                      onClick={() => Crunchyroll.logout()}
-                    >
-                      <Icon name="log out" />
-                      Logout
-                    </Button>
-                  : <Button
-                      icon
-                      labelPosition="left"
-                      color="grey"
-                      href="#crlogin"
-                      className="button"
-                      onClick={() => Crunchyroll.auth()}
-                    >
-                      <Icon name="user" />
-                      Login
-                    </Button>}
-              </Card.Content>
-            </Card>
-            <Divider horizontal>Localization</Divider>
-            <div className="subSettingsContainer">
-              <div>
-                <Header as="h2">Preferred Subtitles Language</Header>
-                <Dropdown
-                  placeholder={dropdownTitle}
-                  selection
-                  options={subOptions}
-                  onChange={this.handleChange}
-                  loading={loading}
-                  disabled={loading}
-                />
-                {subMessage}
-              </div>
-              <span className="subSettingsNote">
-                Note: Not all series have support for all subtitles languages!
-              </span>
+        <div className="settings">
+          <Link to="/">
+            <Button icon labelPosition="left" color="grey" className="button">
+              <Icon name="arrow left" />
+              Back
+            </Button>
+          </Link>
+          <Divider horizontal><Header as="h1">Settings</Header></Divider>
+          <Divider horizontal>Localization</Divider>
+          <div className="subSettingsContainer">
+            <div>
+              <Header as="h3">Preferred Subtitles Language: </Header>
+              <Dropdown
+                className="subDropdown"
+                placeholder={dropdownTitle}
+                selection
+                options={subOptions}
+                onChange={this.handleChange}
+                loading={loading}
+                disabled={loading}
+              />
+              {subMessage}
             </div>
+            <span className="subSettingsNote">
+              Note: Not all series have support for all subtitles languages!
+            </span>
           </div>
         </div>
-
       </div>
     );
   }

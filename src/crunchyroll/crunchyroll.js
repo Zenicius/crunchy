@@ -177,6 +177,59 @@ class Crunchyroll {
     return series;
   }
 
+  async getAllSeriesGenre(genre, page) {
+    // wait for auth
+    await this.isInited;
+
+    // load series by genre
+    console.log('Crunchy: Getting ', genre, ' series');
+
+    // get page
+    const url = `${baseURL}/videos/anime/genres/ajax_page?pg=${page}&tagged=${genre}`;
+    const data = await request(url);
+    // create cheerio cursor
+    const $ = cheerio.load(data);
+    // series
+    const series = $('li.group-item')
+      .map((index, el) => {
+        const element = $(el);
+        // get title & url
+        const title = $('a', element).attr('title');
+        const _id = $('a', element).attr('href');
+        const url = `${baseURL}${_id}`;
+        // get image
+        const image = $('img', element).attr('src');
+        // get videos count
+        const seriesData = $('.series-data', element);
+        const count = parseInt(seriesData.text().trim().replace('Videos', '').trim(), 10);
+
+        // return series data
+        return {
+          _id,
+          source: 'crunchyroll',
+          genre,
+          title,
+          url,
+          image,
+          count,
+        };
+      })
+      .get();
+
+    //add to database
+    await db.genres.bulkDocs(series);
+    await db.genres.allDocs({include_docs: true}, function(err, docs) {
+      if (err) {
+        return console.log(err);
+      } else {
+        console.log('db series', docs.rows);
+      }
+    });
+    console.log('Series: ', series);
+
+    return series;
+  }
+
   async getEpisodes(series) {
     // wait for auth
     await this.isInited;

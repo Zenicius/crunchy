@@ -3,10 +3,13 @@ import ReactDOM from 'react-dom';
 import {HashRouter, Route, Switch} from 'react-router-dom';
 //pages
 import Home from './app/home';
+import Genres from './app/genres';
 import My from './app/my';
-import Settings from './app/settings';
 import Series from './app/series';
 import Episode from './app/episode';
+import Settings from './app/settings';
+import Info from './app/info';
+
 //ui
 import {Container} from 'semantic-ui-react';
 import Navbar from './components/navbar';
@@ -18,10 +21,12 @@ ReactDOM.render(
       <Navbar />
       <Switch>
         <Route exact path="/" component={Home} />
+        <Route path="/genre/:value" component={Genres} />
         <Route exact path="/my" component={My} />
-        <Route exact path="/settings" component={Settings} />
         <Route path="/series/:id" component={Series} />
         <Route path="/episode/:id" component={Episode} />
+        <Route exact path="/settings" component={Settings} />
+        <Route exact path="/info" component={Info} />
         <Route component={Home} />
       </Switch>
     </Container>

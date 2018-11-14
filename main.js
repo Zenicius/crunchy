@@ -18,6 +18,7 @@ function createWindow() {
     height: 900,
     minWidth: 1000,
     minHeight: 700,
+    //  frame: false,
   });
 
   //Disable menu

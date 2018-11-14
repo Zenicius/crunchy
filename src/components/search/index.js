@@ -6,7 +6,7 @@ import {Crunchyroll} from '../../crunchyroll';
 //db
 import db from '../../db';
 //ui
-import {Search, Divider} from 'semantic-ui-react';
+import {Search} from 'semantic-ui-react';
 
 export default class SearchComponent extends React.Component {
   constructor(props) {

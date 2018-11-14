@@ -25,6 +25,23 @@ export default class Series extends React.Component {
     this.init(props);
   }
 
+  async init(props) {
+    //Series to show at loading
+    this.series = this.props.location.state;
+    //Starts Loading..
+    this.isLoading = true;
+
+    const series = await this.getSeries(props);
+    await Crunchyroll.getEpisodes(series);
+
+    const info = await Crunchyroll.getInfo(series);
+    if (this._isMounted) {
+      this.setState({
+        info: info,
+      });
+    }
+  }
+
   async componentDidMount() {
     this._isMounted = true;
 
@@ -63,29 +80,12 @@ export default class Series extends React.Component {
     return series;
   }
 
-  async init(props) {
-    //Series to show at loading
-    this.series = this.props.location.state;
-    //Starts Loading..
-    this.isLoading = true;
-
-    const series = await this.getSeries(props);
-    await Crunchyroll.getEpisodes(series);
-
-    const info = await Crunchyroll.getInfo(series);
-    if (this._isMounted) {
-      this.setState({
-        info: info,
-      });
-    }
-  }
-
   render() {
     const {episodes, info} = this.state;
 
     let title;
     if (this.series == undefined) {
-      title = 'Episodes';
+      title = '';
     } else {
       title = this.series.title;
     }

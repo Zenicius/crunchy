@@ -11,7 +11,7 @@ export default withRouter(({episode, history}) => {
       pathname: `/episode${episode._id}`,
       state: episode,
     };
-    //console.log(location);
+
     history.push(location);
   };
 

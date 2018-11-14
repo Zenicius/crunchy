@@ -31,7 +31,6 @@ class BookmarkedEpisode extends React.Component {
     const formatedEpisode = {
       url: `${baseURL}${id}`,
     };
-    console.log('this', this.state.episode);
     const location = {
       pathname: `/episode${id}`,
       state: formatedEpisode,

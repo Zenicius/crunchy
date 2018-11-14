@@ -9,8 +9,9 @@ import {Crunchyroll} from '../../crunchyroll';
 import db from '../../db';
 //components
 import SearchComponent from '../search';
+import GenresComponent from '../genresDropdown';
 //ui
-import {Menu, Dropdown, Image, Segment, Container, Button} from 'semantic-ui-react';
+import {Menu, Dropdown, Image, Segment, Container, Button, Icon} from 'semantic-ui-react';
 
 class Navbar extends React.Component {
   constructor(props) {
@@ -97,6 +98,20 @@ class Navbar extends React.Component {
       this.activeItem = 'Home';
     }
 
+    console.log('path', pathname);
+
+    // only show genres dropwdown when on home and searching by genres
+    let genresDropdown;
+    if (pathname == '/' || pathname.includes('/genre/')) {
+      genresDropdown = (
+        <Menu.Item>
+          <GenresComponent history={this.history} />
+        </Menu.Item>
+      );
+    } else {
+      genresDropdown = null;
+    }
+
     // user trigger
     let trigger, options;
     if (user) {
@@ -123,51 +138,74 @@ class Navbar extends React.Component {
         <Dropdown className="userDropDown" trigger={trigger} options={options} onChange={this.handleChange} />
       );
     } else if (!loading && !logedin && !onLogin) {
-      userDropDown = <Button circular inverted icon="user" onClick={this.handleLogin} />;
+      userDropDown = <Button circular icon="user" onClick={this.handleLogin} />;
     }
 
-    // Navbar (if current page is series or episode, navbar returns null)
+    // Navbar (if current page is not supposed to have navbar, returns null)
     let navbar;
-    if (pathname.includes('/series') || pathname.includes('/episode') || pathname.includes('/settings')) {
-      navbar = null;
-    } else {
+    if (pathname == '/' || pathname == '/my' || pathname.includes('/genre/')) {
       navbar = (
-        <Segment inverted>
-          <Container>
-            <Menu className="Menu" fixed="top" inverted pointing>
-              <Menu.Item>
-                <Image
-                  src="https://lh3.googleusercontent.com/y4DLuPgyt1H7G9Y6MIQjDaRrYwuBgAmFSwVopiv_YXGyzUz7CPfFZ1C3abyhSWXYCw_RmKmlMqFc98qUYfJZ=w1919-h937"
-                  size="tiny"
-                />
-              </Menu.Item>
-              <Menu.Item
-                name="Home"
-                as={Link}
-                to="/"
-                active={this.activeItem === 'Home'}
-                onClick={this.handleActiveItem}
-              />
-              <Menu.Item
-                name="My Series"
-                as={Link}
-                to="/my"
-                active={this.activeItem === 'My Series'}
-                onClick={this.handleActiveItem}
-              />
-              <Menu.Item position="right">
-                <SearchComponent history={this.history} />
-              </Menu.Item>
-              <Menu.Item>
-                {userDropDown}
-              </Menu.Item>
-              <Menu.Item as={Link} to="/settings">
-                <Button circular inverted icon="settings" />
-              </Menu.Item>
-            </Menu>
-          </Container>
-        </Segment>
+        <div>
+          <Segment>
+            <Container>
+              <Menu className="Menu" fixed="top" pointing borderless>
+                <Menu.Item>
+                  <Image
+                    src="https://lh4.googleusercontent.com/DWksuWhKYx_fXdHnfq3ZwfTqXwEIqeq4qwvyF5SpIdEMBOrn0sRoVXO36fjEoR08nvegf9tna-sH6v4DG3jb=w1919-h937"
+                    size="tiny"
+                  />
+                </Menu.Item>
+                <Menu.Item
+                  name="Home"
+                  as={Link}
+                  to="/"
+                  active={this.activeItem === 'Home'}
+                  onClick={this.handleActiveItem}
+                >
+                  <Icon name="video play" size="large" />
+                  Popular
+                </Menu.Item>
+                <Menu.Item
+                  name="Favorites"
+                  as={Link}
+                  to="/my"
+                  active={this.activeItem === 'Favorites'}
+                  onClick={this.handleActiveItem}
+                >
+                  <Icon name="heart" size="large" />
+                  Favorites
+                </Menu.Item>
+                <Menu.Item
+                  name="My Series"
+                  as={Link}
+                  to="/my"
+                  active={this.activeItem === 'My Series'}
+                  onClick={this.handleActiveItem}
+                >
+                  <Icon name="list ol" size="large" />
+                  Queue
+                </Menu.Item>
+                {genresDropdown}
+                <Menu.Item position="right">
+                  <SearchComponent history={this.history} />
+                </Menu.Item>
+                <Menu.Item />
+                <Menu.Item>
+                  {userDropDown}
+                </Menu.Item>
+                <Menu.Item>
+                  <Button as={Link} to="/settings" circular icon="settings" />
+                </Menu.Item>
+                <Menu.Item>
+                  <Button as={Link} to="/info" circular icon="info" />
+                </Menu.Item>
+              </Menu>
+            </Container>
+          </Segment>
+        </div>
       );
+    } else {
+      navbar = null;
     }
 
     return navbar;

@@ -177,57 +177,77 @@ class Crunchyroll {
     return series;
   }
 
-  async getAllSeriesGenre(genre, page) {
+  async getAllSeriesGenre(genre) {
     // wait for auth
     await this.isInited;
 
     // load series by genre
     console.log('Crunchy: Getting ', genre, ' series');
 
-    // get page
-    const url = `${baseURL}/videos/anime/genres/ajax_page?pg=${page}&tagged=${genre}`;
-    const data = await request(url);
-    // create cheerio cursor
-    const $ = cheerio.load(data);
-    // series
-    const series = $('li.group-item')
-      .map((index, el) => {
-        const element = $(el);
-        // get title & url
-        const title = $('a', element).attr('title');
-        const _id = $('a', element).attr('href');
-        const url = `${baseURL}${_id}`;
-        // get image
-        const image = $('img', element).attr('src');
-        // get videos count
-        const seriesData = $('.series-data', element);
-        const count = parseInt(seriesData.text().trim().replace('Videos', '').trim(), 10);
+    let hasMorePages = true;
+    let page = 0;
 
-        // return series data
-        return {
-          _id,
-          source: 'crunchyroll',
-          genre,
-          title,
-          url,
-          image,
-          count,
-        };
-      })
-      .get();
+    // load series while theres more pages
+    while (hasMorePages) {
+      // get page
+      const url = `${baseURL}/videos/anime/genres/ajax_page?pg=${page}&tagged=${genre}`;
+      const data = await request(url);
+      // create cheerio cursor
+      const $ = cheerio.load(data);
+      // series
+      const series = $('li.group-item')
+        .map((index, el) => {
+          const element = $(el);
+          // get title & url
+          const title = $('a', element).attr('title');
+          const _id = $('a', element).attr('href');
+          const url = `${baseURL}${_id}`;
+          // get image
+          const image = $('img', element).attr('src');
+          // get videos count
+          const seriesData = $('.series-data', element);
+          const count = parseInt(seriesData.text().trim().replace('Videos', '').trim(), 10);
 
-    //add to database
-    await db.genres.bulkDocs(series);
-    await db.genres.allDocs({include_docs: true}, function(err, docs) {
-      if (err) {
-        return console.log(err);
+          // return series data
+          return {
+            _id,
+            source: 'crunchyroll',
+            genre,
+            title,
+            url,
+            image,
+            count,
+          };
+        })
+        .get();
+
+      // update genre of series already in db
+      if (series.length > 0) {
+        series.forEach(async serie => {
+          try {
+            await db.genres.get(serie._id).then(async doc => {
+              if (doc.genre != serie.genre) {
+                // update
+                doc.genre = serie.genre;
+                // put them back
+                await db.genres.put(doc);
+              }
+            });
+          } catch (e) {
+            if (e.status === 404) {
+              return;
+            }
+          }
+        });
+
+        // add to database
+        await db.genres.bulkDocs(series);
+
+        page++;
       } else {
-        console.log('db series', docs.rows);
+        hasMorePages = false;
       }
-    });
-    console.log('Series: ', series);
-
-    return series;
+    }
   }
 
   async getEpisodes(series) {
@@ -635,7 +655,7 @@ class Crunchyroll {
     }
 
     //Send request
-    await request(options).then(function(response) {
+    await request(options).then(response => {
       //Log response
       let jsonResponse = response.slice(10);
       jsonResponse = jsonResponse.substring(0, jsonResponse.length - 3);

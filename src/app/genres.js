@@ -26,12 +26,21 @@ export default class Genres extends React.Component {
 
   init(justMounted) {
     // Load series
-    Crunchyroll.getAllSeriesGenre(this.value, 0);
+    Crunchyroll.getAllSeriesGenre(this.value);
     // starts loading
     this.isLoading = true;
 
+    // comparator to sort series
+    const compare = (a, b) => {
+      if (a.title < b.title) return -1;
+      if (a.title > b.title) return 1;
+      return 0;
+    };
+
     // update series
     if (!justMounted) {
+      this.sub.unsubscribe();
+
       this.sub = Observable.fromEvent(
         db.genres.changes({
           since: 0,
@@ -44,12 +53,20 @@ export default class Genres extends React.Component {
         .map(change => change.doc)
         .filter(doc => doc.genre === this.value)
         .scan((acc, doc) => acc.concat([doc]), [])
+        .map(series => series.sort(compare))
         .debounceTime(1000)
         .subscribe(series => this.setState({series}));
     }
   }
 
   componentDidMount() {
+    // comparator to sort series
+    const compare = (a, b) => {
+      if (a.title < b.title) return -1;
+      if (a.title > b.title) return 1;
+      return 0;
+    };
+
     this.sub = Observable.fromEvent(
       db.genres.changes({
         since: 0,
@@ -62,6 +79,7 @@ export default class Genres extends React.Component {
       .map(change => change.doc)
       .filter(doc => doc.genre === this.value)
       .scan((acc, doc) => acc.concat([doc]), [])
+      .map(series => series.sort(compare))
       .debounceTime(1000)
       .subscribe(series => this.setState({series}));
   }
@@ -71,6 +89,7 @@ export default class Genres extends React.Component {
     if (this.props.location.value != this.value) {
       this.value = this.props.location.value;
 
+      // reset series
       this.setState({
         series: [],
       });
@@ -87,15 +106,13 @@ export default class Genres extends React.Component {
     const {series} = this.state;
     const currentGenre = this.value;
 
-    //if series is ready, ends loading..
+    // if series is ready, ends loading..
     if (series.length > 0) {
       this.isLoading = false;
     }
 
-    console.log('genres', this.state.series);
-
     let home;
-    //Default home screen
+    // Default home screen
     if (!this.isLoading) {
       home = (
         <div>
@@ -111,7 +128,7 @@ export default class Genres extends React.Component {
         </div>
       );
     }
-    //Loading
+    // Loading
     if (this.isLoading) {
       home = (
         <div>

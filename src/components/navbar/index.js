@@ -98,8 +98,6 @@ class Navbar extends React.Component {
       this.activeItem = 'Home';
     }
 
-    console.log('path', pathname);
-
     // only show genres dropwdown when on home and searching by genres
     let genresDropdown;
     if (pathname == '/' || pathname.includes('/genre/')) {
@@ -151,7 +149,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh4.googleusercontent.com/DWksuWhKYx_fXdHnfq3ZwfTqXwEIqeq4qwvyF5SpIdEMBOrn0sRoVXO36fjEoR08nvegf9tna-sH6v4DG3jb=w1919-h937"
+                    src="https://lh5.googleusercontent.com/rg9RG2mMqf16Rr-l7T-2L9nker14HsyzIYDoJtXlS6nUcGQNvPsP-jJp_0NwzS7RUyPjVJ6ttqTbdDPyEPM-=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>
@@ -163,7 +161,7 @@ class Navbar extends React.Component {
                   onClick={this.handleActiveItem}
                 >
                   <Icon name="video play" size="large" />
-                  Popular
+                  Anime
                 </Menu.Item>
                 <Menu.Item
                   name="Favorites"

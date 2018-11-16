@@ -3,10 +3,8 @@ import React from 'react';
 import {Observable} from 'rxjs';
 //db
 import db from '../db';
-//Crunchyroll api
-import {Crunchyroll} from '../crunchyroll';
 //components
-import Series from '../components/series';
+import FavoritedSeries from '../components/favoritedSeries';
 //ui
 import {Grid, Message, Icon} from 'semantic-ui-react';
 
@@ -17,7 +15,24 @@ export default class Favorites extends React.Component {
     this.isLoading = true;
     this.state = {
       series: [],
+      isEmpty: false,
     };
+
+    this.checkEmpty();
+  }
+
+  checkEmpty() {
+    db.favorites.info().then(result => {
+      if (result.doc_count === 0) {
+        this.setState({
+          isEmpty: true,
+        });
+      } else {
+        this.setState({
+          isEmpty: false,
+        });
+      }
+    });
   }
 
   componentDidMount() {
@@ -41,31 +56,30 @@ export default class Favorites extends React.Component {
   }
 
   render() {
-    const {series} = this.state;
+    const {series, isEmpty} = this.state;
 
-    console.log(series);
     //if series is ready, ends loading..
-    if (series.length > 0) {
+    if (series.length > 0 || isEmpty) {
       this.isLoading = false;
     }
 
     let home;
-    //Default home screen
-    if (!this.isLoading) {
+    // Default home screen
+    if (!this.isLoading && !isEmpty) {
       home = (
         <div>
           <div className="MainContent">
             <Grid columns="equal">
               <Grid.Row stretched>
-                {series.map(s => <Series key={s._id} series={s} />)}
+                {series.map(s => <FavoritedSeries key={s._id} series={s} />)}
               </Grid.Row>
             </Grid>
           </div>
         </div>
       );
     }
-    //Loading
-    if (this.isLoading) {
+    // Loading
+    if (this.isLoading && !isEmpty) {
       home = (
         <div>
           <div className="MainContent">
@@ -74,6 +88,22 @@ export default class Favorites extends React.Component {
               <Message.Content>
                 <Message.Header>Loading Favorites..</Message.Header>
                 Just one second!
+              </Message.Content>
+            </Message>
+          </div>
+        </div>
+      );
+    }
+    // Empty
+    if (isEmpty) {
+      home = (
+        <div>
+          <div className="MainContent">
+            <Message warning icon>
+              <Icon name="info" />
+              <Message.Content>
+                <Message.Header>Favorites is Empty..</Message.Header>
+                Add series to your favorites before coming here!
               </Message.Content>
             </Message>
           </div>

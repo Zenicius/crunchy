@@ -76,8 +76,6 @@ export default class SeriesInfo extends React.Component {
       _id: info.link,
       title: info.title,
       image: info.image,
-      url: `https://www.crunchyroll.com${info.link}`,
-      count: 'Watch',
     };
 
     // triggers loading..

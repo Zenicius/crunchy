@@ -149,10 +149,9 @@ class Crunchyroll {
     const series = $('li.group-item')
       .map((index, el) => {
         const element = $(el);
-        // get title & url
+        // get title & id
         const title = $('a', element).attr('title');
         const _id = $('a', element).attr('href');
-        const url = `${baseURL}${_id}`;
         // get image
         const image = $('img', element).attr('src');
         // get videos count
@@ -164,7 +163,6 @@ class Crunchyroll {
           _id,
           source: 'crunchyroll',
           title,
-          url,
           image,
           count,
         };
@@ -198,10 +196,9 @@ class Crunchyroll {
       const series = $('li.group-item')
         .map((index, el) => {
           const element = $(el);
-          // get title & url
+          // get title & id
           const title = $('a', element).attr('title');
           const _id = $('a', element).attr('href');
-          const url = `${baseURL}${_id}`;
           // get image
           const image = $('img', element).attr('src');
           // get videos count
@@ -214,7 +211,6 @@ class Crunchyroll {
             source: 'crunchyroll',
             genre,
             title,
-            url,
             image,
             count,
           };
@@ -254,9 +250,12 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Crunchy: Getting episodes for ', series.url);
+    // this series url
+    const url = `${baseURL}${series._id}`;
+
+    console.log('Crunchy: Getting episodes for ', url);
     // load episodes
-    const data = await request(series.url);
+    const data = await request(url);
     const $ = cheerio.load(data);
 
     // episodes
@@ -301,13 +300,14 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Crunchy: Getting info for ', series.url);
+    // this series url
+    const url = `${baseURL}${series._id}`;
 
-    console.log('test', series);
+    console.log('Crunchy: Getting info for ', url);
 
     //Loads data
-    const data = await request(series.url);
-    // load info
+    const data = await request(url);
+    // load infori
     const $ = cheerio.load(data);
     // info
     const title = $('[itemprop=name]').text();

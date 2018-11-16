@@ -303,6 +303,8 @@ class Crunchyroll {
 
     console.log('Crunchy: Getting info for ', series.url);
 
+    console.log('test', series);
+
     //Loads data
     const data = await request(series.url);
     // load info
@@ -324,7 +326,7 @@ class Crunchyroll {
     const id = $('div.show-actions', sidebar).attr('group_id');
 
     let bookmarked = false;
-    //check if series is bookmarked
+    // check if series is bookmarked
     if (this.authCookies !== null) {
       // add auth cookies
       const jar = request.jar();
@@ -338,7 +340,7 @@ class Crunchyroll {
         url: `${baseURL}/home/queue`,
         jar,
       });
-      //cheerio cursor
+      // cheerio cursor
       const $ = cheerio.load(data);
 
       $('div.queue-controls > a.left', 'ul.landscape-grid').each((index, element) => {
@@ -348,13 +350,14 @@ class Crunchyroll {
         }
       });
     } else {
-      //user not logged in
+      // user not logged in
       bookmarked = null;
     }
 
     // series info
     const info = {
       id,
+      link: series._id,
       title,
       image,
       description,
@@ -583,6 +586,7 @@ class Crunchyroll {
     console.log('My: ', items);
     return items;
   }
+
   async search() {
     // force english language
     const jar = request.jar();
@@ -617,12 +621,12 @@ class Crunchyroll {
   async bookmarkSeries(option = 1, id) {
     await this.isInited;
 
-    //not logged in
+    // not logged in
     if (this.authCookies == null) {
       return;
     }
 
-    //defines cookies
+    // defines cookies
     const jar = request.jar();
     this.authCookies.cookies.forEach(data => {
       const cookie = request.cookie(`${data.name}=${data.value}`);
@@ -631,7 +635,7 @@ class Crunchyroll {
 
     let options;
     if (option == 1) {
-      //Add to bookmarks
+      // Add to bookmarks
       options = {
         method: 'POST',
         uri: 'https://www.crunchyroll.com/ajax/',
@@ -642,7 +646,7 @@ class Crunchyroll {
         },
       };
     } else if (option == 2) {
-      //Delete from bookmarks
+      // Delete from bookmarks
       options = {
         method: 'POST',
         uri: 'https://www.crunchyroll.com/ajax/',
@@ -654,9 +658,9 @@ class Crunchyroll {
       };
     }
 
-    //Send request
+    // Send request
     await request(options).then(response => {
-      //Log response
+      // Log response
       let jsonResponse = response.slice(10);
       jsonResponse = jsonResponse.substring(0, jsonResponse.length - 3);
       const jsonObject = JSON.parse(jsonResponse);

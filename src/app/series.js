@@ -31,9 +31,11 @@ export default class Series extends React.Component {
     //Starts Loading..
     this.isLoading = true;
 
+    // get series
     const series = await this.getSeries(props);
     await Crunchyroll.getEpisodes(series);
 
+    // get series info
     const info = await Crunchyroll.getInfo(series);
     if (this._isMounted) {
       this.setState({

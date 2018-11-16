@@ -111,9 +111,6 @@ class BookmarkedEpisode extends React.Component {
             <div className="BE">
               <Header className="BETitle" as="h2">{episode.seriesTitle}</Header>
               <Header className="BENext" as="h4">{episode.seriesNext}</Header>
-              <div className="BEDescriptionContainer">
-                <p className="BEDescription">{episode.description}</p>
-              </div>
               <div className="BEButtonContainer">
                 <Button basic color="green" onClick={this.openEpisode}>
                   Watch

@@ -141,7 +141,7 @@ class Navbar extends React.Component {
 
     // Navbar (if current page is not supposed to have navbar, returns null)
     let navbar;
-    if (pathname == '/' || pathname == '/my' || pathname.includes('/genre/')) {
+    if (pathname == '/' || pathname == '/my' || pathname == '/favorites' || pathname.includes('/genre/')) {
       navbar = (
         <div>
           <Segment>
@@ -166,7 +166,7 @@ class Navbar extends React.Component {
                 <Menu.Item
                   name="Favorites"
                   as={Link}
-                  to="/my"
+                  to="/favorites"
                   active={this.activeItem === 'Favorites'}
                   onClick={this.handleActiveItem}
                 >

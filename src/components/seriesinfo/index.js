@@ -2,6 +2,8 @@
 import React from 'react';
 //api
 import {Crunchyroll} from '../../crunchyroll';
+//db
+import db from '../../db';
 //ui
 import {Image, Header, Rating, Button, Icon} from 'semantic-ui-react';
 
@@ -11,35 +13,94 @@ export default class SeriesInfo extends React.Component {
     this.state = {
       info: this.props.info,
       bookmarked: this.props.info.bookmarked,
-      loading: false,
+      favorited: false,
+      loadingBookmark: false,
+      loadingFavorited: false,
     };
 
     this.bookmark = this.bookmark.bind(this);
+    this.favorite = this.favorite.bind(this);
   }
 
-  //Bookmark or Remove
+  async componentDidMount() {
+    const info = this.state.info;
+
+    // checks if series is favorited
+    try {
+      const favorite = await db.favorites.get(info.link);
+      if (favorite) {
+        this.setState({
+          favorited: true,
+        });
+      }
+    } catch (e) {
+      if (e.status == 404) {
+        this.setState({
+          favorited: false,
+        });
+      }
+    }
+  }
+
+  // Bookmark or Remove
   async bookmark() {
-    //Not logged-in
+    // Not logged-in
     if (this.state.bookmarked == null) return;
 
-    //triggers loading
+    // triggers loading
     this.setState({
-      loading: true,
+      loadingBookmark: true,
     });
     if (this.state.bookmarked == true) {
-      //bookmarked, remove from queue
+      // bookmarked, remove from queue
       await Crunchyroll.bookmarkSeries(2, this.state.info.id);
       this.setState({
         bookmarked: false,
-        loading: false,
+        loadingBookmark: false,
       });
     } else if (this.state.bookmarked == false) {
-      //not bookmarked, adds to queue
+      // not bookmarked, adds to queue
       await Crunchyroll.bookmarkSeries(1, this.state.info.id);
       this.setState({
         bookmarked: true,
-        loading: false,
+        loadingBookmark: false,
       });
+    }
+  }
+
+  // Favorite or remove
+  async favorite() {
+    const {info, favorited} = this.state;
+
+    const serie = {
+      _id: info.link,
+      title: info.title,
+      image: info.image,
+      url: `https://www.crunchyroll.com${info.link}`,
+      count: 'Watch',
+    };
+
+    // triggers loading..
+    this.setState({
+      loadingFavorited: true,
+    });
+
+    // favorite or remove series
+    if (!favorited) {
+      await db.favorites.put(serie);
+      this.setState({
+        favorited: true,
+        loadingFavorited: false,
+      });
+      console.log('Crunchy: favorited ', serie.title);
+    } else if (favorited) {
+      const toBeRemoved = await db.favorites.get(info.link);
+      await db.favorites.remove(toBeRemoved);
+      this.setState({
+        favorited: false,
+        loadingFavorited: false,
+      });
+      console.log('Crunchy: removed from favorites ', serie.title);
     }
   }
 
@@ -63,30 +124,53 @@ export default class SeriesInfo extends React.Component {
 
     //Switch Bookmark button
     let bookmarkButton;
-    if (this.state.loading == true) {
+    if (this.state.loadingBookmark) {
       bookmarkButton = <Button loading>Loading</Button>;
-    } else if (this.state.bookmarked == true) {
+    } else if (this.state.bookmarked && !this.state.loadingBookmark) {
       //Bookmarked (option to remove)
       bookmarkButton = (
-        <Button className="infoBookmarkButton" icon labelPosition="left" color="grey">
-          <Icon name="remove" />
-          Remove from series
+        <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
+          <Icon name="list ol" />
+          Remove
         </Button>
       );
-    } else if (this.state.bookmarked == false) {
+    } else if (!this.state.bookmarked && !this.state.loadingBookmark) {
       //Not bookmarked (option to add)
       bookmarkButton = (
-        <Button className="infoBookmarkButton" icon labelPosition="left" color="red">
-          <Icon name="heart" />
-          Add to series
+        <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
+          <Icon name="list ol" />
+          Queue
         </Button>
       );
     } else if (this.state.bookmarked == null) {
       //Not logged in (disabled)
       bookmarkButton = (
-        <Button className="infoBookmarkButton" disabled icon labelPosition="left" color="red">
+        <Button className="infoBookmarkButton" disabled icon labelPosition="left" onClick={this.bookmark}>
+          <Icon name="list ol" />
+          Queue
+        </Button>
+      );
+    }
+
+    // Switch favorite button
+    let favoriteButtton;
+    if (this.loadingFavorited) {
+      // loading
+      favoriteButtton = <Button loading>Loading</Button>;
+    } else if (!this.state.favorited && !this.loadingFavorited) {
+      // not favorited (option to add)
+      favoriteButtton = (
+        <Button className="infoFavoriteButton" icon labelPosition="left" onClick={this.favorite}>
+          <Icon name="heart outline" />
+          Favorite
+        </Button>
+      );
+    } else if (this.state.favorited && !this.loadingFavorited) {
+      // favorited (option to remove)
+      favoriteButtton = (
+        <Button className="infoFavoriteButton" icon labelPosition="left" onClick={this.favorite}>
           <Icon name="heart" />
-          Add to series
+          Remove
         </Button>
       );
     }
@@ -103,8 +187,8 @@ export default class SeriesInfo extends React.Component {
             <p className="infoDescription">{info.description}</p>
             <Rating className="infoRating" defaultRating={info.rating} maxRating={5} disabled />
           </div>
-          <div className="infoButtonContainer" onClick={this.bookmark}>
-            {bookmarkButton}
+          <div className="infoButtonContainer">
+            {favoriteButtton} {bookmarkButton}
           </div>
         </div>
       </div>

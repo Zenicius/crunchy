@@ -95,7 +95,7 @@ export default class My extends React.Component {
             <Message icon>
               <Icon name="circle notched" loading />
               <Message.Content>
-                <Message.Header>Loading Your Series..</Message.Header>
+                <Message.Header>Loading Queue..</Message.Header>
                 Just one second!
               </Message.Content>
             </Message>

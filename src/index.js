@@ -10,10 +10,10 @@ import Series from './app/series';
 import Episode from './app/episode';
 import Settings from './app/settings';
 import Info from './app/info';
-
+//components
+import Navbar from './components/navbar';
 //ui
 import {Container} from 'semantic-ui-react';
-import Navbar from './components/navbar';
 
 // render on page
 ReactDOM.render(

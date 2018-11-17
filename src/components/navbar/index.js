@@ -122,6 +122,7 @@ class Navbar extends React.Component {
 
       //user options
       options = [
+        {key: 'type', text: <span>{user.type}</span>, disabled: true},
         {key: 'user', text: 'Account', icon: 'user', value: 'user'},
         {key: 'sign-out', text: 'Sign Out', icon: 'sign out', value: 'logout'},
       ];
@@ -149,7 +150,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh5.googleusercontent.com/rg9RG2mMqf16Rr-l7T-2L9nker14HsyzIYDoJtXlS6nUcGQNvPsP-jJp_0NwzS7RUyPjVJ6ttqTbdDPyEPM-=w1919-h937"
+                    src="https://lh4.googleusercontent.com/kGqHbbx6LzkXfE_sQbJhWwxS9v3ogU4FAVPaxbZo-Ax2OUiN8SK4FRudGZM_eh7TncaBOodw1w3iG9ADjdXN=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>

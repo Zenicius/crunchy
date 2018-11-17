@@ -120,16 +120,23 @@ class Crunchyroll {
     });
 
     $ = cheerio.load(dataProfile);
-    // get user image
+    // get user image and account type
     const image = $('img.library-poster').attr('src');
+    let type = $('img.cr-star-tiny').attr('title');
+
+    if (type == undefined) {
+      type = 'Normal Member';
+    }
 
     const user = {
       link,
       name,
       image,
+      type,
     };
 
-    await db.current.put({_id: 'user', link: user.link, name: user.name, image: user.image});
+    // store in db
+    await db.current.put({_id: 'user', link: user.link, name: user.name, image: user.image, type: user.type});
 
     return user;
   }
@@ -583,7 +590,7 @@ class Crunchyroll {
     //store in db
     await db.bookmarkSeries.bulkDocs(items);
 
-    console.log('My: ', items);
+    console.log('Crunchy: Queue', items);
     return items;
   }
 

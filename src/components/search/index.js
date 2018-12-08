@@ -71,7 +71,6 @@ export default class SearchComponent extends React.Component {
     } catch (e) {
       if (e.status === 404) {
         await db.current.put({_id: 'series', data: formatedSeries});
-        console.log('not found put new');
       }
     }
 

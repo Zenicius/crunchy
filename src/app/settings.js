@@ -128,7 +128,7 @@ export default class Settings extends React.Component {
               Back
             </Button>
           </Link>
-          <Divider horizontal><Header as="h1">Settings</Header></Divider>
+          <h1 className="settingsHeader">Settings</h1>
           <Divider horizontal>Localization</Divider>
           <div className="subSettingsContainer">
             <div>

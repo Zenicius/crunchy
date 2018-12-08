@@ -1,5 +1,6 @@
 //npm
 import React from 'react';
+import util from 'util';
 //api
 import {Crunchyroll} from '../crunchyroll';
 //ui
@@ -14,40 +15,9 @@ export default class Episode extends React.Component {
       episode: null,
       file: null,
     };
-    //load episode
+
+    // load episode
     this.init(props);
-  }
-
-  componentDidMount() {
-    this._isMounted = true;
-  }
-
-  componentDidUpdate() {
-    const {episode, file} = this.state;
-
-    //Dont do nothing if theres no file, episode or if theres an error
-    if (!episode || !file || file.err !== null) return;
-
-    //Subtitles plugin e config
-    videojs('video', {
-      fluid: true,
-      plugins: {
-        ass: {
-          src: file.subtitles,
-        },
-      },
-    });
-  }
-
-  componentWillUnmount() {
-    this._isMounted = false;
-
-    //if videojs is initilized destroy to create another later
-    if (this.isPlaying) {
-      videojs('video').dispose();
-    } else {
-      return;
-    }
   }
 
   async init(props) {
@@ -62,11 +32,52 @@ export default class Episode extends React.Component {
     }
   }
 
+  componentDidMount() {
+    this._isMounted = true;
+  }
+
+  componentDidUpdate() {
+    const {episode, file} = this.state;
+
+    // Dont do nothing if theres no file, episode or if theres an error
+    if (!episode || !file || file.err !== null) return;
+
+    const formatedSubtitles = file.subtitles.map(subtitle => {
+      return {
+        src: subtitle.link,
+        label: subtitle.label,
+        enabled: subtitle.default,
+      };
+    });
+
+    // Subtitles plugin e config
+    // TODO: Load All available subtitles
+    videojs('video', {
+      fluid: true,
+      plugins: {
+        ass: {
+          subtitles: [formatedSubtitles[0], formatedSubtitles[1], formatedSubtitles[2]],
+        },
+      },
+    });
+  }
+
+  componentWillUnmount() {
+    this._isMounted = false;
+
+    // if videojs is initilized destroy to create another later
+    if (this.isPlaying) {
+      videojs('video').dispose();
+    } else {
+      return;
+    }
+  }
+
   render() {
     const {episode, file} = this.state;
     const {history} = this.props;
 
-    //Loading default
+    // Loading default
     let body = (
       <div>
         <Divider />
@@ -79,9 +90,9 @@ export default class Episode extends React.Component {
         </Message>
       </div>
     );
-    //video player if ready
+    // video player if ready
     if (episode && file) {
-      //No error, start video
+      // No error, start video
       if (file.err == null) {
         this.isPlaying = true;
         body = (

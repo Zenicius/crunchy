@@ -25,7 +25,7 @@ class Crunchyroll {
     if (this.authCookies) {
       return;
     }
-    //load auth
+    // load auth
     try {
       this.authCookies = await db.auth.get('crunchyroll');
     } catch (e) {
@@ -42,41 +42,41 @@ class Crunchyroll {
     }
 
     const remote = electron.remote;
-    //main window
+    // main window
     const mainWindow = remote.getCurrentWindow();
     const BrowserWindow = remote.BrowserWindow;
     // creat new window
     let loginWin = new BrowserWindow({width: 800, height: 600, parent: mainWindow, modal: true});
-    //disable menu
+    // disable menu
     loginWin.setMenu(null);
-    //cleanup
+    // cleanup
     loginWin.on('closed', () => {
       loginWin = null;
-      //Handle login complete at navbar
+      // Handle login complete at navbar
       component.handleLoginCompleted();
     });
-    //wait page finish loading
+    // wait page finish loading
     loginWin.webContents.on('did-finish-load', () => {
       console.log('Current URL: ', loginWin.webContents.getURL());
-      //auth suceccesful
+      // auth suceccesful
       if (loginWin.webContents.getURL() === 'https://www.crunchyroll.com/') {
         loginWin.webContents.session.cookies.get({}, async (error, cookies) => {
           if (error) {
             console.log('Error: Failed to get cookies');
             return;
           }
-          //Store auth cookies (filter for crunchyroll cookies only)
+          // Store auth cookies (filter for crunchyroll cookies only)
           this.authCookies = cookies.filter(c => c.domain.includes('crunchyroll.com'));
           await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
           this.authCookies = await db.auth.get('crunchyroll');
           console.log('Auth: Saved cookies');
-          //closes window
+          // closes window
           loginWin.close();
         });
       }
     });
 
-    //loads url
+    // loads url
     loginWin.loadURL(`${baseURL}/login?next=%2F`);
   }
 
@@ -176,7 +176,7 @@ class Crunchyroll {
       })
       .get();
 
-    //add to database
+    // add to database
     await db.series.bulkDocs(series);
 
     return series;
@@ -312,7 +312,7 @@ class Crunchyroll {
 
     console.log('Crunchy: Getting info for ', url);
 
-    //Loads data
+    // Loads data
     const data = await request(url);
     // load infori
     const $ = cheerio.load(data);
@@ -382,11 +382,11 @@ class Crunchyroll {
     await this.isInited;
 
     console.log('Loading episode: ', episode.url);
-    //load episode page
+    // load episode page
     const data = await request(episode.url);
-    //cheerio
+    // cheerio
     const $ = cheerio.load(data);
-    //available formats
+    // available formats
     const formats = [];
     $('a[token^=showmedia]').each((index, el) => {
       const token = $(el).attr('token');
@@ -422,24 +422,19 @@ class Crunchyroll {
       },
     });
 
-    //file to be returned
-    let subtitles = null, url = null, type = null;
-    //error
-    let err = null;
-    let errMessage = null;
-
     const xmlObj = await parseXml(xmlData);
     const preload = xmlObj['config:Config']['default:preload'][0];
 
-    //try get subtitles from preload, if cant, episode is premium
+    // try get subtitles from preload, if cant, episode is premium
     let subtitlesInfo;
+    let err = null;
     try {
       subtitlesInfo = preload.subtitles[0].subtitle;
     } catch (e) {
       err = 'Failed to load episode';
-      errMessage = 'You are probably trying to load a premium episode not being logged-in !';
+      const errMessage = 'You are probably trying to load a premium episode not being logged-in !';
       console.log('Failed to load episode (episode is probably premium)');
-      return {subtitles, url, type, err, errMessage};
+      return {err, errMessage};
     }
 
     console.log(subtitlesInfo);
@@ -447,11 +442,11 @@ class Crunchyroll {
     const streamInfo = preload.stream_info[0];
     const streamFile = streamInfo.file[0];
 
-    //load stream urls playlist
+    // load stream urls playlist
     const streamFileData = await request(streamFile);
     const playlist = M3U.parse(streamFileData);
 
-    //get preferred subtitles from db
+    // get preferred subtitles from db
     let preferred, preferredSub;
     try {
       preferred = await db.settings.get('preferredSubtitles');
@@ -461,47 +456,48 @@ class Crunchyroll {
       preferredSub = 'English';
     }
 
-    //subtitles
-    let sub;
-    //get subtitles by user preferred
-    sub = subtitlesInfo.map(s => s.$).filter(s => s.title.includes(preferredSub)).pop();
-    if (sub == undefined || sub == null) {
-      //preferred subtitle not available
-      sub = subtitlesInfo.map(s => s.$).filter(s => s.title.includes('English')).pop();
-      console.log('Preferred Subtitles not found, setting it to english!');
-      if (sub == undefined || sub == null) {
-        //english not available either
-        err = 'Failed to load subtitles';
-        errMessage = 'Try checking if preferred subtitles is avaible for this series!';
-        console.log('Failed to load subtitles (default subtitles not available either)');
-        return {subtitles, url, type, err, errMessage};
-      }
+    // subtitles array
+    let subtitles = [];
+    for (const s of subtitlesInfo) {
+      const sub = s.$;
+
+      // checks if sub is preferred
+      const defaultSub = sub.title.includes(preferredSub);
+
+      const subData = await request(sub.link);
+      const subsObj = await parseXml(subData);
+      const subsId = parseInt(subsObj.subtitle.$.id, 10);
+      const subsIv = subsObj.subtitle.iv.pop();
+      const subsData = subsObj.subtitle.data.pop();
+
+      const subBytes = await decode(subsId, subsIv, subsData);
+      const subtitlesText = await bytesToAss(subBytes);
+      const subBlob = new Blob([subtitlesText], {
+        type: 'application/octet-binary',
+      });
+
+      const subtitle = {
+        link: URL.createObjectURL(subBlob),
+        label: sub.title.substring(sub.title.indexOf(']') + 2, sub.title.length),
+        default: defaultSub,
+      };
+
+      // push to array
+      subtitles.push(subtitle);
     }
 
-    const subData = await request(sub.link);
-    const subsObj = await parseXml(subData);
-    const subsId = parseInt(subsObj.subtitle.$.id, 10);
-    const subsIv = subsObj.subtitle.iv.pop();
-    const subsData = subsObj.subtitle.data.pop();
+    // final
+    const url = playlist.pop().file;
+    const type = 'application/x-mpegURL';
 
-    const subBytes = await decode(subsId, subsIv, subsData);
-    const subtitlesText = await bytesToAss(subBytes);
-    const subBlob = new Blob([subtitlesText], {
-      type: 'application/octet-binary',
-    });
-
-    //final
-    subtitles = URL.createObjectURL(subBlob);
-    url = playlist.pop().file;
-    type = 'application/x-mpegURL';
-
-    return {type, url, subtitles, err};
+    console.log('done all');
+    return {url, type, subtitles, err};
   }
 
   async getMySeries() {
     await this.isInited;
 
-    //not logged in
+    // not logged in
     if (this.authCookies == null) {
       return;
     }
@@ -513,7 +509,7 @@ class Crunchyroll {
     });
 
     // force english language
-    //jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
+    // jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
 
     // request page html
     const data = await request({
@@ -521,9 +517,9 @@ class Crunchyroll {
       jar,
     });
 
-    //cheerio cursor
+    // cheerio cursor
     const $ = cheerio.load(data);
-    //main contents
+    // main contents
     const mainContent = $('#main_content');
     const items = $('li.queue-item', mainContent)
       .map((index, el) => {
@@ -559,12 +555,12 @@ class Crunchyroll {
       })
       .toArray();
 
-    //remove series no longer bookmarked from db
+    // remove series no longer bookmarked from db
     const dbItems = await db.bookmarkSeries.allDocs({
       include_docs: true,
     });
     if (dbItems.rows.length > items.length) {
-      //deletes item no longer bookmakerd
+      // deletes item no longer bookmakerd
       dbItems.rows.forEach(async dbItem => {
         let found = true;
         let stop = false;
@@ -580,14 +576,14 @@ class Crunchyroll {
           }
         });
         if (found == false) {
-          //get and delete no longer bookmarked
+          // get and delete no longer bookmarked
           const toBeDeleted = await db.bookmarkSeries.get(dbItem.id);
           await db.bookmarkSeries.remove(toBeDeleted);
         }
       });
     }
 
-    //store in db
+    // store in db
     await db.bookmarkSeries.bulkDocs(items);
 
     console.log('Crunchy: Queue', items);
@@ -599,21 +595,21 @@ class Crunchyroll {
     const jar = request.jar();
     jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
 
-    //search catalogue
+    // search catalogue
     const data = await request({
       url: `${baseURL}/ajax/?req=RpcApiSearch_GetSearchCandidates`,
       jar,
     });
 
-    //data to json
+    // data to json
     const lines = data.split('\n');
     const dataJson = lines[1];
     const catalogue = JSON.parse(dataJson);
 
-    //series filter
+    // series filter
     const series = catalogue.data.filter(it => it.type === 'Series');
 
-    //source for search component
+    // source for search component
     const source = _.times(series.length, i => ({
       id: series[i].id,
       title: series[i].name,

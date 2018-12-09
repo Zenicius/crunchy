@@ -14,6 +14,17 @@ export default class GenresComponent extends React.Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
+  componentDidMount() {
+    // defines correct value after returning from another page
+    const path = this.history.location.pathname;
+    if (path.includes('genre')) {
+      const valueByPath = path.substring(path.lastIndexOf('/') + 1, path.length);
+      this.setState({
+        value: valueByPath,
+      });
+    }
+  }
+
   async handleChange(e, {value}) {
     // no changes
     if (this.state.value == value) {

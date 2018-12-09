@@ -447,13 +447,12 @@ class Crunchyroll {
     const playlist = M3U.parse(streamFileData);
 
     // get preferred subtitles from db
-    let preferred, preferredSub;
+    let preferredSub;
     try {
-      preferred = await db.settings.get('preferredSubtitles');
+      const preferred = await db.settings.get('preferredSubtitles');
       preferredSub = preferred.title;
     } catch (e) {
-      if (e.name == 'not_found');
-      preferredSub = 'English';
+      if (e.name == 'not_found') return;
     }
 
     // subtitles array
@@ -490,7 +489,6 @@ class Crunchyroll {
     const url = playlist.pop().file;
     const type = 'application/x-mpegURL';
 
-    console.log('done all');
     return {url, type, subtitles, err};
   }
 

@@ -120,12 +120,13 @@ export default class SeriesInfo extends React.Component {
     } else
       genresContainer = null;
 
-    //Switch Bookmark button
+    // Switch Bookmark button
     let bookmarkButton;
-    if (this.state.loadingBookmark) {
-      bookmarkButton = <Button loading>Loading</Button>;
+    if (this.state.bookmarked == null) {
+      // Not logged in (disabled)
+      bookmarkButton = null;
     } else if (this.state.bookmarked && !this.state.loadingBookmark) {
-      //Bookmarked (option to remove)
+      // Bookmarked (option to remove)
       bookmarkButton = (
         <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
           <Icon name="list ol" />
@@ -133,21 +134,15 @@ export default class SeriesInfo extends React.Component {
         </Button>
       );
     } else if (!this.state.bookmarked && !this.state.loadingBookmark) {
-      //Not bookmarked (option to add)
+      // Not bookmarked (option to add)
       bookmarkButton = (
         <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
           <Icon name="list ol" />
           Queue
         </Button>
       );
-    } else if (this.state.bookmarked == null) {
-      //Not logged in (disabled)
-      bookmarkButton = (
-        <Button className="infoBookmarkButton" disabled icon labelPosition="left" onClick={this.bookmark}>
-          <Icon name="list ol" />
-          Queue
-        </Button>
-      );
+    } else if (this.state.loadingBookmark) {
+      bookmarkButton = <Button loading>Loading</Button>;
     }
 
     // Switch favorite button

@@ -1,7 +1,6 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
-import {Link} from 'react-router-dom';
 //db
 import db from '../db';
 //api
@@ -84,6 +83,7 @@ export default class Series extends React.Component {
 
   render() {
     const {episodes, info} = this.state;
+    const {history} = this.props;
 
     let title;
     if (this.series == undefined) {
@@ -129,12 +129,10 @@ export default class Series extends React.Component {
     }
     return (
       <div>
-        <Link to="/">
-          <Button icon labelPosition="left" color="grey" className="button">
-            <Icon name="arrow left" />
-            Back
-          </Button>
-        </Link>
+        <Button href="#back" icon labelPosition="left" color="grey" className="button" onClick={() => history.goBack()}>
+          <Icon name="arrow left" />
+          Back
+        </Button>
         {series}
       </div>
     );

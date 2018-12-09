@@ -1,6 +1,5 @@
 //npm
 import React from 'react';
-import {Link} from 'react-router-dom';
 //db
 import db from '../db';
 //ui
@@ -72,6 +71,7 @@ export default class Settings extends React.Component {
     const dropdownTitle = this.state.dropdownTitle;
     const loading = this.state.loading;
     const justSaved = this.state.justSaved;
+    const {history} = this.props;
 
     //Subtitles options
     const subOptions = [
@@ -122,12 +122,17 @@ export default class Settings extends React.Component {
     return (
       <div>
         <div className="settings">
-          <Link to="/">
-            <Button icon labelPosition="left" color="grey" className="button">
-              <Icon name="arrow left" />
-              Back
-            </Button>
-          </Link>
+          <Button
+            href="#back"
+            icon
+            labelPosition="left"
+            color="grey"
+            className="button"
+            onClick={() => history.goBack()}
+          >
+            <Icon name="arrow left" />
+            Back
+          </Button>
           <h1 className="settingsHeader">Settings</h1>
           <Divider horizontal>Localization</Divider>
           <div className="subSettingsContainer">

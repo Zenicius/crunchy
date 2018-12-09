@@ -1,6 +1,5 @@
 //npm
 import React from 'react';
-import util from 'util';
 //api
 import {Crunchyroll} from '../crunchyroll';
 //ui

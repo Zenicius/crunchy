@@ -25,6 +25,14 @@ export default class Genres extends React.Component {
   }
 
   init(justMounted) {
+    // defines correct value after returning from another page
+    if (this.value == undefined || this.value == null) {
+      const path = this.props.location.pathname;
+      const valueByPath = path.substring(path.lastIndexOf('/') + 1, path.length);
+
+      this.value = valueByPath;
+    }
+
     // Load series
     Crunchyroll.getAllSeriesGenre(this.value);
     // starts loading
@@ -86,7 +94,7 @@ export default class Genres extends React.Component {
 
   componentDidUpdate() {
     // updates current genre
-    if (this.props.location.value != this.value) {
+    if (this.props.location.value && this.props.location.value != this.value) {
       this.value = this.props.location.value;
 
       // reset series

@@ -49,15 +49,23 @@ export default class Episode extends React.Component {
       };
     });
 
-    // Subtitles plugin e config
-    // TODO: Load All available subtitles
-    videojs('video', {
+    // player config
+    const player = videojs('video', {
       fluid: true,
+      autoplay: true,
+      controls: true,
       plugins: {
-        ass: {
-          subtitles: [formatedSubtitles[0], formatedSubtitles[1], formatedSubtitles[2]],
-        },
+        ass: {},
       },
+    });
+
+    // add all available subtitles
+    player.on('ready', () => {
+      formatedSubtitles.forEach(subtitle => {
+        player.ass().addSubtitle(subtitle.src, subtitle.label, null, subtitle.enabled);
+      });
+
+      console.log(player.textTracks());
     });
   }
 
@@ -97,13 +105,7 @@ export default class Episode extends React.Component {
         body = (
           <div>
             <Divider />
-            <video
-              id="video"
-              className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid"
-              controls
-              autoPlay
-              preload="auto"
-            >
+            <video id="video" className="video-js vjs-default-skin vjs-big-play-centered vjs-fluid" preload="auto">
               <source src={file.url} type={file.type} />
             </video>
           </div>

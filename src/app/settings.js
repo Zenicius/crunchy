@@ -101,9 +101,19 @@ export default class Settings extends React.Component {
         flag: 'it',
       },
       {
+        text: 'Français (France)',
+        value: 'fr',
+        flag: 'fr',
+      },
+      {
         text: 'Deutsch',
         value: 'de',
         flag: 'de',
+      },
+      {
+        text: 'العربية',
+        value: 'sa',
+        flag: 'sa',
       },
       {
         text: 'Русский',

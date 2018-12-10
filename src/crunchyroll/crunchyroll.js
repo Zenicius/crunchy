@@ -437,8 +437,6 @@ class Crunchyroll {
       return {err, errMessage};
     }
 
-    console.log(subtitlesInfo);
-
     const streamInfo = preload.stream_info[0];
     const streamFile = streamInfo.file[0];
 
@@ -452,7 +450,9 @@ class Crunchyroll {
       const preferred = await db.settings.get('preferredSubtitles');
       preferredSub = preferred.title;
     } catch (e) {
-      if (e.name == 'not_found') return;
+      if (e.name == 'not_found') {
+        preferredSub = null;
+      }
     }
 
     // subtitles array

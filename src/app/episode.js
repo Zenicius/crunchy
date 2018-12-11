@@ -64,8 +64,6 @@ export default class Episode extends React.Component {
       formatedSubtitles.forEach(subtitle => {
         player.ass().addSubtitle(subtitle.src, subtitle.label, null, subtitle.enabled);
       });
-
-      console.log(player.textTracks());
     });
   }
 

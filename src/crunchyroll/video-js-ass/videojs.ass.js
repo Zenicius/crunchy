@@ -91,23 +91,32 @@ class AASSubtitles extends Plugin {
       clock: clock,
       renderer: renderer,
     });
+
+    // forces to start default subtitles
+    if (enabled) {
+      this.switchTrack();
+    }
   }
 
   switchTrack() {
     if (this.is_switching) return;
-    this.is_switching = true; // recursion prevention, changing track.mode triggers track change
     const selected_track = this.player.textTracks().tracks_.find(t => t.mode === 'showing');
 
-    if (this.current_track) {
-      this.stop(this.current_track);
-    }
+    // prenvent bug that keeps starting and stoping same subtitle and others
+    if (this.current_track == null || this.current_track !== selected_track) {
+      this.is_switching = true; // recursion prevention, changing track.mode triggers track change
 
-    if (selected_track) {
-      this.current_track = selected_track;
-      this.start(selected_track);
-    }
+      if (this.current_track) {
+        this.stop(this.current_track);
+      }
 
-    this.is_switching = false;
+      if (selected_track) {
+        this.current_track = selected_track;
+        this.start(selected_track);
+      }
+
+      this.is_switching = false;
+    }
   }
 
   start(track) {

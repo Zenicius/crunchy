@@ -102,7 +102,7 @@ class AASSubtitles extends Plugin {
     if (this.is_switching) return;
     const selected_track = this.player.textTracks().tracks_.find(t => t.mode === 'showing');
 
-    // prenvent bug that keeps starting and stoping same subtitle and others
+    // prenvent bug that keeps starting and stoping same subtitle
     if (this.current_track == null || this.current_track !== selected_track) {
       this.is_switching = true; // recursion prevention, changing track.mode triggers track change
 
@@ -175,7 +175,8 @@ class AASSubtitles extends Plugin {
   updateDisplayArea() {
     setTimeout(
       () => {
-        if (!this.player) return;
+        // fix bug trying to resize when theres no player
+        if (!this.player || !this.player.player_) return;
         // player might not have information on video dimensions when using external providers
         let videoWidth = this.player.videoWidth() || this.player.el().offsetWidth,
           videoHeight = this.player.videoHeight() || this.player.el().offsetHeight,

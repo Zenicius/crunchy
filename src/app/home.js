@@ -36,9 +36,8 @@ export default class Home extends React.Component {
     //starts Loading..
     this.isLoading = true;
 
-    let current;
     try {
-      current = await db.current.get('currentPage');
+      const current = await db.current.get('currentPage');
       this.startPage = current.data;
       this.currentPage = this.startPage;
     } catch (e) {

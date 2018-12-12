@@ -3,16 +3,20 @@ import React from 'react';
 //db
 import db from '../db';
 //ui
-import {Button, Icon, Divider, Dropdown, Header} from 'semantic-ui-react';
+import {Button, Icon, Divider, Dropdown, Header, Confirm} from 'semantic-ui-react';
 
 export default class Settings extends React.Component {
   constructor(props) {
     super(props);
-    this.location = this.props.location;
     this.state = {
       dropdownTitle: null,
       loading: false,
       justSaved: false,
+      loadingDbReset: false,
+      openConfirmDb: false,
+      openConfirmReset: false,
+      resultConfirmDb: false,
+      resultConfirmReset: false,
     };
 
     this.handleChange = this.handleChange.bind(this);
@@ -21,7 +25,7 @@ export default class Settings extends React.Component {
   }
 
   async init() {
-    //Try to get current preferred language, default is english
+    // Try to get current preferred language
     try {
       const current = await db.settings.get('preferredSubtitles');
       this.setState({
@@ -30,22 +34,31 @@ export default class Settings extends React.Component {
     } catch (e) {
       if (e.name == 'not_found') {
         this.setState({
-          dropdownTitle: 'English',
+          dropdownTitle: '...',
         });
-        return;
       }
+    }
+  }
+
+  componentDidUpdate() {
+    const {resultConfirmDb, resultConfirmReset} = this.state;
+    // calls function after confirmation
+    if (resultConfirmDb) {
+      this.flushAllDb();
+    } else if (resultConfirmReset) {
+      this.resetSettings();
     }
   }
 
   async handleChange(e, {value}) {
     e.persist();
     const title = e.currentTarget.textContent;
-    //triggers loading
+    // triggers loading
     this.setState({
       loading: true,
     });
     try {
-      await db.settings.get('preferredSubtitles').then(function(doc) {
+      await db.settings.get('preferredSubtitles').then(doc => {
         // update their key and title
         doc.key = value;
         doc.title = title;
@@ -55,7 +68,7 @@ export default class Settings extends React.Component {
       });
     } catch (e) {
       if (e.name == 'not_found') {
-        //Store value in db
+        // Store value in db
         await db.settings.put({_id: 'preferredSubtitles', key: value, title: title});
         console.log(value, ' Defined as Preferred Sub');
       }
@@ -67,13 +80,100 @@ export default class Settings extends React.Component {
     });
   }
 
-  render() {
-    const dropdownTitle = this.state.dropdownTitle;
-    const loading = this.state.loading;
-    const justSaved = this.state.justSaved;
-    const {history} = this.props;
+  async flushAllDb() {
+    //TODO: add more options
+    console.log('Crunchy: Flushing DBs');
 
-    //Subtitles options
+    // triggers loading and resets confirm result
+    this.setState({resultConfirmDb: false, loadingDbReset: true});
+
+    // reset series db
+    await db.series.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.series.remove(row.id, row.value.rev);
+        })
+      );
+    });
+    // reset genres db
+    await db.series.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.series.remove(row.id, row.value.rev);
+        })
+      );
+    });
+    // reset episodes db
+    await db.episodes.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.episodes.remove(row.id, row.value.rev);
+        })
+      );
+    });
+    // reset current db
+    await db.current.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.current.remove(row.id, row.value.rev);
+        })
+      );
+    });
+    // reset favorites db
+    await db.favorites.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.favorites.remove(row.id, row.value.rev);
+        })
+      );
+    });
+    // reset bookmarkSeries db
+    await db.bookmarkSeries.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.bookmarkSeries.remove(row.id, row.value.rev);
+        })
+      );
+    });
+
+    // Ends loading
+    this.setState({loadingDbReset: false});
+  }
+
+  async resetSettings() {
+    console.log('Crunchy: Reseting settings');
+
+    // triggers loading and resets confirm result
+    this.setState({resultConfirmReset: false, loadingDbReset: true});
+
+    // reset settings
+    await db.settings.allDocs().then(result => {
+      return Promise.all(
+        result.rows.map(row => {
+          return db.settings.remove(row.id, row.value.rev);
+        })
+      );
+    });
+
+    // Ends loading
+    this.setState({loadingDbReset: false});
+
+    // Returns to home TODO: go back
+    const {history} = this.props;
+    const location = {
+      pathname: `/`,
+    };
+    history.push(location);
+  }
+
+  render() {
+    // Subtitle Dropdown
+    const {dropdownTitle, loading, justSaved} = this.state;
+    const {history} = this.props;
+    // Db and Reset
+    const {openConfirmDb, openConfirmReset, loadingDbReset} = this.state;
+
+    // Subtitles options
     const subOptions = [
       {
         text: 'English',
@@ -122,6 +222,7 @@ export default class Settings extends React.Component {
       },
     ];
 
+    // Subtitles saved message
     let subMessage;
     if (justSaved) {
       subMessage = <span className="subSettingsMessage">Saved!</span>;
@@ -162,6 +263,35 @@ export default class Settings extends React.Component {
             <span className="subSettingsNote">
               Note: Not all series have support for all subtitles languages!
             </span>
+            <Divider horizontal>Database and Reset</Divider>
+            {loadingDbReset
+              ? <Button loading disabled content="Flush All Databases" />
+              : <Button
+                  content="Flush All Databases"
+                  icon="trash"
+                  labelPosition="left"
+                  onClick={() => this.setState({openConfirmDb: true})}
+                />}
+            {loadingDbReset
+              ? <Button loading disabled content="Reset Settings" />
+              : <Button
+                  content="Reset Settings"
+                  icon="redo"
+                  labelPosition="left"
+                  onClick={() => this.setState({openConfirmReset: true})}
+                />}
+            <Confirm
+              open={openConfirmDb}
+              header="Flush All Databases"
+              onCancel={() => this.setState({openConfirmDb: false})}
+              onConfirm={() => this.setState({openConfirmDb: false, resultConfirmDb: true})}
+            />
+            <Confirm
+              open={openConfirmReset}
+              header="Reset Settings"
+              onCancel={() => this.setState({openConfirmReset: false})}
+              onConfirm={() => this.setState({openConfirmReset: false, resultConfirmReset: true})}
+            />
           </div>
         </div>
       </div>

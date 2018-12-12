@@ -381,7 +381,7 @@ class Crunchyroll {
     // wait for auth
     await this.isInited;
 
-    console.log('Loading episode: ', episode.url);
+    console.log('Crunchy: Loading episode ', episode.url);
     // load episode page
     const data = await request(episode.url);
     // cheerio

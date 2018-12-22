@@ -115,8 +115,12 @@ body{
     margin-left: 10px;
 }
 
-.subSettingsContainer{
+.langSettingsContainer{
     margin-left: 15px;
+}
+
+.langButtons{
+    margin-bottom: 10px;
 }
 
 .subSettingsMessage{

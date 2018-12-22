@@ -150,7 +150,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh3.googleusercontent.com/wYNo2aidweFW-jFthndLwpcM3V0hugCIqltc5HPcinuKRZ-4w5gDivlRvSp8-j7lMRjM3zGtC7KmwVCnnCgC=w1919-h937"
+                    src="https://lh4.googleusercontent.com/kzI2hsxYiwaFyoJw2TUGE80wxGWF0uJ-LMM8qmIUGSwIJRk0YHv29ADJ6Lfs6A-rUv6ky4Bqp6xPm0eT2UhV=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>

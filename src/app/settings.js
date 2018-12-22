@@ -1,5 +1,8 @@
 //npm
 import React from 'react';
+//localization
+import {FormattedMessage} from 'react-intl';
+import {IntlConsumer} from '../localization/context-provider';
 //db
 import db from '../db';
 //ui
@@ -9,9 +12,9 @@ export default class Settings extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      dropdownTitle: null,
-      loading: false,
-      justSaved: false,
+      subDropdownTitle: null,
+      loadingSubDropdown: false,
+      justSavedSub: false,
       loadingDbReset: false,
       openConfirmDb: false,
       openConfirmReset: false,
@@ -19,22 +22,36 @@ export default class Settings extends React.Component {
       resultConfirmReset: false,
     };
 
-    this.handleChange = this.handleChange.bind(this);
+    this.subHandleChange = this.subHandleChange.bind(this);
 
     this.init();
   }
 
   async init() {
-    // Try to get current preferred language
+    // Try to get current default language
     try {
-      const current = await db.settings.get('preferredSubtitles');
+      const current = await db.settings.get('lang');
       this.setState({
-        dropdownTitle: current.title,
+        langDropdownTitle: current.title,
       });
     } catch (e) {
       if (e.name == 'not_found') {
         this.setState({
-          dropdownTitle: '...',
+          langDropdownTitle: 'English',
+        });
+      }
+    }
+
+    // Try to get current preferred sub language
+    try {
+      const current = await db.settings.get('preferredSubtitles');
+      this.setState({
+        subDropdownTitle: current.title,
+      });
+    } catch (e) {
+      if (e.name == 'not_found') {
+        this.setState({
+          subDropdownTitle: '...',
         });
       }
     }
@@ -50,12 +67,16 @@ export default class Settings extends React.Component {
     }
   }
 
-  async handleChange(e, {value}) {
+  async subHandleChange(e, {value}) {
     e.persist();
     const title = e.currentTarget.textContent;
+
+    // dont update to same lang
+    if (title === this.state.subDropdownTitle) return;
+
     // triggers loading
     this.setState({
-      loading: true,
+      loadingSubDropdown: true,
     });
     try {
       await db.settings.get('preferredSubtitles').then(doc => {
@@ -73,10 +94,12 @@ export default class Settings extends React.Component {
         console.log(value, ' Defined as Preferred Sub');
       }
     }
-    // ends loading
+
+    // ends loading and updates dropdown title
     this.setState({
-      loading: false,
-      justSaved: true,
+      subDropdownTitle: title,
+      loadingSubDropdown: false,
+      justSavedSub: true,
     });
   }
 
@@ -158,18 +181,16 @@ export default class Settings extends React.Component {
     // Ends loading
     this.setState({loadingDbReset: false});
 
-    // Returns to home TODO: go back
+    // Returns
     const {history} = this.props;
-    const location = {
-      pathname: `/`,
-    };
-    history.push(location);
+    history.goBack();
   }
 
   render() {
-    // Subtitle Dropdown
-    const {dropdownTitle, loading, justSaved} = this.state;
     const {history} = this.props;
+
+    // Subtitle Dropdown
+    const {subDropdownTitle, loadingSubDropdown, justSavedSub} = this.state;
     // Db and Reset
     const {openConfirmDb, openConfirmReset, loadingDbReset} = this.state;
 
@@ -222,14 +243,6 @@ export default class Settings extends React.Component {
       },
     ];
 
-    // Subtitles saved message
-    let subMessage;
-    if (justSaved) {
-      subMessage = <span className="subSettingsMessage">Saved!</span>;
-    } else {
-      subMessage = null;
-    }
-
     return (
       <div>
         <div className="settings">
@@ -242,44 +255,75 @@ export default class Settings extends React.Component {
             onClick={() => history.goBack()}
           >
             <Icon name="arrow left" />
-            Back
+            <FormattedMessage id="Button.Back" defaultMessage="Back" />
           </Button>
-          <h1 className="settingsHeader">Settings</h1>
-          <Divider horizontal>Localization</Divider>
-          <div className="subSettingsContainer">
+          <h1 className="settingsHeader"><FormattedMessage id="Settings.Header" defaultMessage="Settings" /></h1>
+          <Divider horizontal><FormattedMessage id="Settings.Language" defaultMessage="Language" /></Divider>
+          <div className="langSettingsContainer">
             <div>
-              <Header as="h3">Preferred Subtitles Language: </Header>
+              <Header as="h3">
+                <FormattedMessage id="Settings.DefaultLanguage" defaultMessage="Default Language" />:
+              </Header>
+              <div className="langButtons">
+                <IntlConsumer>
+                  {({switchToEnglish, switchToPortuguese}) => (
+                    <React.Fragment>
+                      <Button onClick={switchToEnglish}>
+                        English
+                      </Button>
+                      <Button onClick={switchToPortuguese}>
+                        Português
+                      </Button>
+                    </React.Fragment>
+                  )}
+                </IntlConsumer>
+              </div>
+            </div>
+            <div>
+              <Header as="h3">
+                <FormattedMessage id="Settings.Preferred" defaultMessage="Preferred Subtitles Languag" />:
+              </Header>
               <Dropdown
                 className="subDropdown"
-                placeholder={dropdownTitle}
+                placeholder={subDropdownTitle}
                 selection
                 options={subOptions}
-                onChange={this.handleChange}
-                loading={loading}
-                disabled={loading}
+                onChange={this.subHandleChange}
+                loading={loadingSubDropdown}
+                disabled={loadingSubDropdown}
               />
-              {subMessage}
+              {justSavedSub
+                ? <span className="subSettingsMessage">
+                    <FormattedMessage id="Settings.Saved" defaultMessage="Saved" />!
+                  </span>
+                : null}
             </div>
             <span className="subSettingsNote">
-              Note: Not all series have support for all subtitles languages!
+              <FormattedMessage
+                id="Settings.Subsnote"
+                defaultMessage="Note: Not all series have support for all subtitles languages"
+              />
+              !
             </span>
-            <Divider horizontal>Database and Reset</Divider>
+            <Divider horizontal>
+              <FormattedMessage id="Settings.DbReset" defaultMessage="Database and Reset" />
+            </Divider>
             {loadingDbReset
-              ? <Button loading disabled content="Flush All Databases" />
-              : <Button
-                  content="Flush All Databases"
-                  icon="trash"
-                  labelPosition="left"
-                  onClick={() => this.setState({openConfirmDb: true})}
-                />}
+              ? <Button loading disabled>
+                  <FormattedMessage id="Settings.DbFlush" defaultMessage="Flush All Databases" />
+                </Button>
+              : <Button icon labelPosition="left" onClick={() => this.setState({openConfirmDb: true})}>
+                  <Icon name="trash" />
+                  <FormattedMessage id="Settings.DbFlush" defaultMessage="Flush All Databases" />
+                </Button>}
             {loadingDbReset
-              ? <Button loading disabled content="Reset Settings" />
-              : <Button
-                  content="Reset Settings"
-                  icon="redo"
-                  labelPosition="left"
-                  onClick={() => this.setState({openConfirmReset: true})}
-                />}
+              ? <Button loading disabled>
+                  <FormattedMessage id="Settings.ResetButton" defaultMessage="Reset Settings" />
+                </Button>
+              : <Button icon labelPosition="left" onClick={() => this.setState({openConfirmReset: true})}>
+                  <Icon name="redo" />
+                  <FormattedMessage id="Settings.ResetButton" defaultMessage="Reset Settings" />
+                </Button>}
             <Confirm
               open={openConfirmDb}
               header="Flush All Databases"

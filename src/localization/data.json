@@ -1,0 +1,26 @@
+{
+    "en": {
+      "Button.Back": "Back",
+      "Settings.Header": "Settings",
+      "Settings.Language": "Language",
+      "Settings.DefaultLanguage": "Default Language",
+      "Settings.Preferred": "Preferred Subtitles Language",
+      "Settings.Saved": "Saved",
+      "Settings.Subsnote": "Note: Not all series have support for all subtitles languages",
+      "Settings.DbReset": "Database and Reset",
+      "Settings.DbFlushButton": "Flush All Databases",
+      "Settings.ResetButton": "Reset Settings"
+    },
+    "pt": {
+      "Button.Back": "Voltar",
+      "Settings.Header": "Configurações",
+      "Settings.Language": "Idioma",
+      "Settings.DefaultLanguage": "Idioma Padrão",
+      "Settings.Preferred": "Idioma de Legendas",
+      "Settings.Saved": "Salvo",
+      "Settings.Subsnote": "Aviso: nem todas as series estão disponíveis em todos idiomas",
+      "Settings.DbReset": "Banco de Dados e Resetar",
+      "Settings.DbFlush": "Limpar todos os bancos de dados",
+      "Settings.ResetButton": "Resetar Configurações"
+    }
+  }

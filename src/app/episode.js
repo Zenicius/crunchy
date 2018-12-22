@@ -54,6 +54,8 @@ export default class Episode extends React.Component {
       fluid: true,
       autoplay: true,
       controls: true,
+      textTrackSettings: false,
+      language: 'en',
       plugins: {
         ass: {},
       },

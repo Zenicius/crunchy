@@ -5,6 +5,8 @@ import {Link} from 'react-router-dom';
 import {shell} from 'electron';
 //api
 import {Crunchyroll} from '../../crunchyroll';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../../db';
 //components
@@ -123,8 +125,18 @@ class Navbar extends React.Component {
       //user options
       options = [
         {key: 'type', text: <span>{user.type}</span>, disabled: true},
-        {key: 'user', text: 'Account', icon: 'user', value: 'user'},
-        {key: 'sign-out', text: 'Sign Out', icon: 'sign out', value: 'logout'},
+        {
+          key: 'user',
+          text: <FormattedMessage id="Navbar.UserAccount" defaultMessage="Account" />,
+          icon: 'user',
+          value: 'user',
+        },
+        {
+          key: 'sign-out',
+          text: <FormattedMessage id="Navbar.UserLogout" defaultMessage="Logout" />,
+          icon: 'sign out',
+          value: 'logout',
+        },
       ];
     }
 
@@ -162,7 +174,7 @@ class Navbar extends React.Component {
                   onClick={this.handleActiveItem}
                 >
                   <Icon name="video play" size="large" />
-                  Anime
+                  <FormattedMessage id="Navbar.AnimeButton" defaultMessage="Anime" />
                 </Menu.Item>
                 <Menu.Item
                   name="Favorites"
@@ -172,7 +184,7 @@ class Navbar extends React.Component {
                   onClick={this.handleActiveItem}
                 >
                   <Icon name="heart" size="large" />
-                  Favorites
+                  <FormattedMessage id="Navbar.FavoritesButton" defaultMessage="Favorites" />
                 </Menu.Item>
                 <Menu.Item
                   name="My Series"
@@ -182,7 +194,7 @@ class Navbar extends React.Component {
                   onClick={this.handleActiveItem}
                 >
                   <Icon name="list ol" size="large" />
-                  Queue
+                  <FormattedMessage id="Navbar.QueueButton" defaultMessage="Queue" />
                 </Menu.Item>
                 {genresDropdown}
                 <Menu.Item position="right">

@@ -2,6 +2,8 @@
 import React from 'react';
 //api
 import {Crunchyroll} from '../crunchyroll';
+// preferences
+import Preferences from '../localization/preferences';
 //ui
 import {Message, Button, Icon, Divider} from 'semantic-ui-react';
 
@@ -41,6 +43,7 @@ export default class Episode extends React.Component {
     // Dont do nothing if theres no file, episode or if theres an error
     if (!episode || !file || file.err !== null) return;
 
+    // format subtitles
     const formatedSubtitles = file.subtitles.map(subtitle => {
       return {
         src: subtitle.link,
@@ -49,13 +52,18 @@ export default class Episode extends React.Component {
       };
     });
 
+    // get language from preferences (if ptbr format to videojs)
+    const preferences = new Preferences();
+    var lang = preferences.get('lang');
+    if (lang == 'pt') lang += '-BR';
+
     // player config
     const player = videojs('video', {
       fluid: true,
       autoplay: true,
       controls: true,
       textTrackSettings: false,
-      language: 'en',
+      language: lang,
       plugins: {
         ass: {},
       },

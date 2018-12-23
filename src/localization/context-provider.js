@@ -16,13 +16,8 @@ class ReactIntlContextProvider extends React.Component {
   constructor(props) {
     super(props);
 
-    // preferences, name and default values
-    const preferences = new Preferences({
-      configName: 'preferences',
-      defaults: {
-        lang: 'en',
-      },
-    });
+    // preferences
+    const preferences = new Preferences();
 
     // translations
     const messagesEn = localeData['en'];
@@ -38,7 +33,6 @@ class ReactIntlContextProvider extends React.Component {
       this.setState({locale: 'en', messages: messagesEn});
       preferences.set('lang', 'en');
     };
-
     this.switchToPortuguese = () => {
       console.log('Switching to portuguese');
       this.setState({locale: 'pt', messages: messagesPt});

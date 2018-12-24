@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../db';
 //api
@@ -25,9 +27,9 @@ export default class Series extends React.Component {
   }
 
   async init(props) {
-    //Series to show at loading
+    // Series to show at loading
     this.series = this.props.location.state;
-    //Starts Loading..
+    // Starts Loading..
     this.isLoading = true;
 
     // get series
@@ -46,7 +48,7 @@ export default class Series extends React.Component {
   async componentDidMount() {
     this._isMounted = true;
 
-    //Series to filter
+    // Series to filter
     const series = await this.getSeries(this.props);
 
     this.sub = Observable.fromEvent(
@@ -92,18 +94,18 @@ export default class Series extends React.Component {
       title = this.series.title;
     }
 
-    //if episodes and info is ready, ends loading.
+    // if episodes and info is ready, ends loading.
     if (episodes.length > 0 && info !== null) {
       this.isLoading = false;
     }
 
     let series;
-    //Main series page
+    // Main series page
     if (!this.isLoading) {
       series = (
         <div>
           <SeriesInfo info={info} />
-          <Divider horizontal>Episodes</Divider>
+          <Divider horizontal><FormattedMessage id="Series.Episodes" defaultMessage="Episodes" /></Divider>
           <Grid columns="equal">
             <Grid.Row stretched>
               {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
@@ -112,7 +114,7 @@ export default class Series extends React.Component {
         </div>
       );
     }
-    //Loading..
+    // Loading..
     if (this.isLoading) {
       series = (
         <div>
@@ -120,8 +122,8 @@ export default class Series extends React.Component {
           <Message icon>
             <Icon name="circle notched" loading />
             <Message.Content>
-              <Message.Header>Loading {title}</Message.Header>
-              Just one second!
+              <Message.Header><FormattedMessage id="Loading" defaultMessage="Loading" /> {title}</Message.Header>
+              <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
             </Message.Content>
           </Message>
         </div>
@@ -131,7 +133,7 @@ export default class Series extends React.Component {
       <div>
         <Button href="#back" icon labelPosition="left" color="grey" className="button" onClick={() => history.goBack()}>
           <Icon name="arrow left" />
-          Back
+          <FormattedMessage id="Button.Back" defaultMessage="Back" />
         </Button>
         {series}
       </div>

@@ -1,6 +1,6 @@
 //npm
 import React from 'react';
-import {IntlProvider, addLocaleData} from 'react-intl';
+import {IntlProvider, addLocaleData, injectIntl} from 'react-intl';
 //localization
 import localeData from './data.json';
 import en from 'react-intl/locale-data/en';
@@ -25,16 +25,16 @@ class ReactIntlContextProvider extends React.Component {
 
     // get default language from user preferences
     const lang = preferences.get('lang');
-    console.log('Lang ', lang);
+    console.log('Crunchy: Default Language ', lang);
 
     // switch functions
     this.switchToEnglish = () => {
-      console.log('Switching to english');
+      console.log('Crunchy: Switching to language to english');
       this.setState({locale: 'en', messages: messagesEn});
       preferences.set('lang', 'en');
     };
     this.switchToPortuguese = () => {
-      console.log('Switching to portuguese');
+      console.log('Crunchy: Switching to language to portuguese');
       this.setState({locale: 'pt', messages: messagesPt});
       preferences.set('lang', 'pt');
     };
@@ -70,4 +70,4 @@ class ReactIntlContextProvider extends React.Component {
   }
 }
 
-export {ReactIntlContextProvider as IntlProvider, Consumer as IntlConsumer};
+export {ReactIntlContextProvider as IntlProvider, Consumer as IntlConsumer, injectIntl};

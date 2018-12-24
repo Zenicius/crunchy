@@ -28,6 +28,9 @@ export default class GenresComponent extends React.Component {
   }
 
   async handleChange(e, {value}) {
+    e.persist();
+    const title = e.currentTarget.textContent;
+
     // no changes
     if (this.state.value == value) {
       return;
@@ -49,6 +52,7 @@ export default class GenresComponent extends React.Component {
       const location = {
         pathname: `/genre/${value}`,
         value: value,
+        title: title,
       };
 
       this.history.push(location);

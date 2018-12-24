@@ -1,5 +1,7 @@
 //npm
 import React from 'react';
+//localization
+import {FormattedMessage} from 'react-intl';
 //api
 import {Crunchyroll} from '../../crunchyroll';
 //db
@@ -106,17 +108,20 @@ export default class SeriesInfo extends React.Component {
     const info = this.state.info;
 
     // if theres genres tags, organize it
-    let genres = '';
-    let genresContainer;
+    let genres = '', genresContainer;
     if (info.genres[0] !== undefined) {
-      this.state.info.genres.forEach(function(element, index) {
+      info.genres.forEach(function(element, index) {
         if (index == info.genres.length - 1) {
           genres += element;
         } else {
           genres += element + ' / ';
         }
       });
-      genresContainer = <Header className="infoGenres" as="h4">Genres: {genres}</Header>;
+      genresContainer = (
+        <Header className="infoGenres" as="h4">
+          <FormattedMessage id="Series.Genres" defaultMessage="Genres" />: {genres}
+        </Header>
+      );
     } else
       genresContainer = null;
 
@@ -130,7 +135,7 @@ export default class SeriesInfo extends React.Component {
       bookmarkButton = (
         <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
           <Icon name="list ol" />
-          Remove
+          <FormattedMessage id="Series.Remove" defaultMessage="Remove" />
         </Button>
       );
     } else if (!this.state.bookmarked && !this.state.loadingBookmark) {
@@ -138,7 +143,7 @@ export default class SeriesInfo extends React.Component {
       bookmarkButton = (
         <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
           <Icon name="list ol" />
-          Queue
+          <FormattedMessage id="Series.Queue" defaultMessage="Queue" />
         </Button>
       );
     } else if (this.state.loadingBookmark) {
@@ -155,7 +160,7 @@ export default class SeriesInfo extends React.Component {
       favoriteButtton = (
         <Button className="infoFavoriteButton" icon labelPosition="left" onClick={this.favorite}>
           <Icon name="heart outline" />
-          Favorite
+          <FormattedMessage id="Series.Favorite" defaultMessage="Favorite" />
         </Button>
       );
     } else if (this.state.favorited && !this.loadingFavorited) {
@@ -163,7 +168,7 @@ export default class SeriesInfo extends React.Component {
       favoriteButtton = (
         <Button className="infoFavoriteButton" icon labelPosition="left" onClick={this.favorite}>
           <Icon name="heart" />
-          Remove
+          <FormattedMessage id="Series.Remove" defaultMessage="Remove" />
         </Button>
       );
     }
@@ -176,7 +181,9 @@ export default class SeriesInfo extends React.Component {
           <Header className="infoPublisher" as="h4">{info.publisher}</Header>
           {genresContainer}
           <div className="infoDescriptionContainer">
-            <Header className="infoDescriptionTitle" as="h4">Description:</Header>
+            <Header className="infoDescriptionTitle" as="h4">
+              <FormattedMessage id="Series.Description" defaultMessage="Description" />:
+            </Header>
             <p className="infoDescription">{info.description}</p>
             <Rating className="infoRating" defaultRating={info.rating} maxRating={5} disabled />
           </div>

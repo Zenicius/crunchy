@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+//localization
+import {FormattedMessage} from 'react-intl';
 //api
 import {Crunchyroll} from '../../crunchyroll';
 //db
@@ -24,7 +26,7 @@ class BookmarkedEpisode extends React.Component {
     this.undo = this.undo.bind(this);
   }
 
-  //Open Episode
+  // Open Episode
   async openEpisode() {
     const baseURL = 'https://www.crunchyroll.com';
     const id = this.state.episode.episodeUrl.substring(0, this.state.episode.episodeUrl.indexOf('?'));
@@ -38,7 +40,7 @@ class BookmarkedEpisode extends React.Component {
     this.history.push(location);
   }
 
-  //Open series page
+  // Open series page
   async openSeries() {
     const baseURL = 'https://www.crunchyroll.com';
     const formatedSeries = {
@@ -50,7 +52,7 @@ class BookmarkedEpisode extends React.Component {
       pathname: `/series${this.state.episode.seriesUrl}`,
       state: formatedSeries,
     };
-    //Store at current db to return after
+    // Store at current db to return after
     try {
       const doc = await db.current.get('series');
       const update = {
@@ -69,30 +71,30 @@ class BookmarkedEpisode extends React.Component {
     this.history.push(location);
   }
 
-  //remove from bookmarked
+  // remove from bookmarked
   async remove() {
     //start loading
     this.setState({
       loading: true,
     });
-    //remove
+    // remove
     await Crunchyroll.bookmarkSeries(2, this.state.episode.bookmarkId);
-    //set states
+    // set states
     this.setState({
       deleted: true,
       loading: false,
     });
   }
 
-  //undo remove
+  // undo remove
   async undo() {
-    //start loading
+    // start loading
     this.setState({
       loading: true,
     });
-    //undo
+    // undo
     await Crunchyroll.bookmarkSeries(1, this.state.episode.bookmarkId);
-    //set states
+    // set states
     this.setState({
       deleted: false,
       loading: false,
@@ -113,13 +115,13 @@ class BookmarkedEpisode extends React.Component {
               <Header className="BENext" as="h4">{episode.seriesNext}</Header>
               <div className="BEButtonContainer">
                 <Button basic color="green" onClick={this.openEpisode}>
-                  Watch
+                  <FormattedMessage id="Series.Watch" defaultMessage="Watch" />
                 </Button>
                 <Button basic color="blue" onClick={this.openSeries}>
-                  Series Page
+                  <FormattedMessage id="Series.MoreEpisodes" defaultMessage="More Episodes" />
                 </Button>
                 <Button className="BEremoveButton" basic color="red" onClick={this.remove}>
-                  Remove
+                  <FormattedMessage id="Series.Remove" defaultMessage="Remove" />
                 </Button>
               </div>
             </div>
@@ -132,10 +134,12 @@ class BookmarkedEpisode extends React.Component {
         <div>
           <div className="BEContainer">
             <div className="BE">
-              <Header className="BENext" as="h4">Removed: {episode.seriesTitle}</Header>
+              <Header className="BENext" as="h4">
+                <FormattedMessage id="Series.Removed" defaultMessage="Removed" /> {episode.seriesTitle}
+              </Header>
               <div className="BEButtonContainer">
                 <Button className="BEremoveButton" basic color="green" onClick={this.undo}>
-                  Undo
+                  <FormattedMessage id="Series.Undo" defaultMessage="Undo" />
                 </Button>
               </div>
             </div>

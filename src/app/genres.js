@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
+//localization
+import {FormattedMessage} from 'react-intl';
 //Crunchyroll api
 import {Crunchyroll} from '../crunchyroll';
 //db
@@ -17,6 +19,8 @@ export default class Genres extends React.Component {
     this.isLoading = false;
     // currente genre
     this.value = this.props.location.value;
+    this.title = this.props.location.title;
+
     this.state = {
       series: [],
     };
@@ -93,9 +97,10 @@ export default class Genres extends React.Component {
   }
 
   componentDidUpdate() {
-    // updates current genre
+    // updates current genre and title
     if (this.props.location.value && this.props.location.value != this.value) {
       this.value = this.props.location.value;
+      this.title = this.props.location.title;
 
       // reset series
       this.setState({
@@ -112,7 +117,7 @@ export default class Genres extends React.Component {
 
   render() {
     const {series} = this.state;
-    const currentGenre = this.value;
+    const currentGenre = this.title;
 
     // if series is ready, ends loading..
     if (series.length > 0) {
@@ -144,8 +149,10 @@ export default class Genres extends React.Component {
             <Message icon>
               <Icon name="circle notched" loading />
               <Message.Content>
-                <Message.Header>Loading {currentGenre}..</Message.Header>
-                Just one second!
+                <Message.Header>
+                  <FormattedMessage id="Loading" defaultMessage="Loading" /> {currentGenre}..
+                </Message.Header>
+                <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
               </Message.Content>
             </Message>
           </div>

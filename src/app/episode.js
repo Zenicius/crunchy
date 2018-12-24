@@ -1,5 +1,7 @@
 //npm
 import React from 'react';
+//localization
+import {FormattedMessage} from 'react-intl';
 //api
 import {Crunchyroll} from '../crunchyroll';
 // preferences
@@ -99,8 +101,8 @@ export default class Episode extends React.Component {
         <Message icon>
           <Icon name="circle notched" loading />
           <Message.Content>
-            <Message.Header>Loading...</Message.Header>
-            Downloading Subtitles...
+            <Message.Header><FormattedMessage id="Loading" defaultMessage="Loading" />...</Message.Header>
+            <FormattedMessage id="Loading.SubtitlesMessage" defaultMessage="Downloading Subtitles" />
           </Message.Content>
         </Message>
       </div>
@@ -138,7 +140,7 @@ export default class Episode extends React.Component {
       <div>
         <Button href="#back" icon labelPosition="left" color="grey" className="button" onClick={() => history.goBack()}>
           <Icon name="arrow left" />
-          Back
+          <FormattedMessage id="Button.Back" defaultMessage="Back" />
         </Button>
         {body}
       </div>

@@ -324,18 +324,26 @@ export default class Settings extends React.Component {
                   <Icon name="redo" />
                   <FormattedMessage id="Settings.ResetButton" defaultMessage="Reset Settings" />
                 </Button>}
-            <Confirm
-              open={openConfirmDb}
-              header="Flush All Databases"
-              onCancel={() => this.setState({openConfirmDb: false})}
-              onConfirm={() => this.setState({openConfirmDb: false, resultConfirmDb: true})}
-            />
-            <Confirm
-              open={openConfirmReset}
-              header="Reset Settings"
-              onCancel={() => this.setState({openConfirmReset: false})}
-              onConfirm={() => this.setState({openConfirmReset: false, resultConfirmReset: true})}
-            />
+            <FormattedMessage id="Settings.Confirm" defaultMessage="Are you sure?">
+              {msg => (
+                <Confirm
+                  open={openConfirmDb}
+                  content={msg}
+                  onCancel={() => this.setState({openConfirmDb: false})}
+                  onConfirm={() => this.setState({openConfirmDb: false, resultConfirmDb: true})}
+                />
+              )}
+            </FormattedMessage>
+            <FormattedMessage id="Settings.Confirm" defaultMessage="Are you sure?">
+              {msg => (
+                <Confirm
+                  open={openConfirmReset}
+                  content={msg}
+                  onCancel={() => this.setState({openConfirmReset: false})}
+                  onConfirm={() => this.setState({openConfirmReset: false, resultConfirmReset: true})}
+                />
+              )}
+            </FormattedMessage>
           </div>
         </div>
       </div>

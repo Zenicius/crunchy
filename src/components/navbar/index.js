@@ -162,7 +162,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh4.googleusercontent.com/kzI2hsxYiwaFyoJw2TUGE80wxGWF0uJ-LMM8qmIUGSwIJRk0YHv29ADJ6Lfs6A-rUv6ky4Bqp6xPm0eT2UhV=w1919-h937"
+                    src="https://lh5.googleusercontent.com/MvOrgphyz3IrnuC6xM9BhTeTI_Cv4jEzpM0SGfPNQd-OmfLDNj3sceUsmde3LleoCsI5-9lzPwQkJE1zBjGp=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>

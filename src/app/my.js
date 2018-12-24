@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../db';
 //Crunchyroll api
@@ -24,7 +26,7 @@ export default class My extends React.Component {
   }
 
   init() {
-    //Checks if user is logged in
+    // Checks if user is logged in
     if (Crunchyroll.authCookies !== null) {
       this.isLoggedin = true;
       this.isLoading = true;
@@ -34,7 +36,7 @@ export default class My extends React.Component {
   async componentDidMount() {
     this._isMounted = true;
 
-    //List update and wait for changes(removed from bookmarked)
+    // List update and wait for changes(removed from bookmarked)
     await Crunchyroll.getMySeries();
 
     this.sub = Observable.fromEvent(
@@ -68,16 +70,16 @@ export default class My extends React.Component {
   }
 
   render() {
-    //My episodes
+    // My episodes
     const {episodes} = this.state;
 
-    //If episodes is ready ends loading
+    // If episodes is ready ends loading
     if (episodes.length > 0) {
       this.isLoading = false;
     }
 
     let my;
-    //Default My series screen
+    // Default My series screen
     if (!this.isLoading) {
       my = (
         <div>
@@ -87,7 +89,7 @@ export default class My extends React.Component {
         </div>
       );
     }
-    //Loading..
+    // Loading..
     if (this.isLoading) {
       my = (
         <div>
@@ -95,15 +97,17 @@ export default class My extends React.Component {
             <Message icon>
               <Icon name="circle notched" loading />
               <Message.Content>
-                <Message.Header>Loading Queue..</Message.Header>
-                Just one second!
+                <Message.Header>
+                  <FormattedMessage id="Loading.Queue" defaultMessage="Loading Queue.." />
+                </Message.Header>
+                <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
               </Message.Content>
             </Message>
           </div>
         </div>
       );
     }
-    //not logged in
+    // not logged in
     if (!this.isLoggedin) {
       my = (
         <div>
@@ -111,8 +115,13 @@ export default class My extends React.Component {
             <Message negative icon>
               <Icon name="info" />
               <Message.Content>
-                <Message.Header>You are not logged-in!</Message.Header>
-                Click on the user button to peform login..
+                <Message.Header>
+                  <FormattedMessage id="Warning.NotLoggedIn" defaultMessage="You are not logged-in!" />
+                </Message.Header>
+                <FormattedMessage
+                  id="Warning.NotLoggedInMessage"
+                  defaultMessage="Click on the user button to peform login.."
+                />
               </Message.Content>
             </Message>
           </div>

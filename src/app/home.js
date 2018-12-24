@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../db';
 //Crunchyroll api
@@ -14,13 +16,13 @@ import InfiniteScroll from 'react-infinite-scroller';
 export default class Home extends React.Component {
   constructor(props) {
     super(props);
-    //Scroll
+    // Scroll
     this.currentPage = 0;
     this.startPage = 0;
     this.hasMoreItems = true;
-    //location
+    // location
     this.location = this.props.location;
-    //loading
+    // loading
     this.isLoading = false;
     this.state = {
       series: [],
@@ -28,12 +30,12 @@ export default class Home extends React.Component {
 
     this.init();
 
-    //init list
+    // init list
     Crunchyroll.getAllSeries();
   }
 
   async init() {
-    //starts Loading..
+    // starts Loading..
     this.isLoading = true;
 
     try {
@@ -49,13 +51,13 @@ export default class Home extends React.Component {
 
   loadItems(page) {
     this.currentPage = page;
-    //No more items after page 16
+    // No more items after page 16
     if (page > 16) {
       this.hasMoreItems = false;
       console.log('Home: Loaded all pages!');
       return;
     }
-    //get page
+    // get page
     Crunchyroll.getAllSeries(page);
   }
 
@@ -78,7 +80,7 @@ export default class Home extends React.Component {
   async componentWillUnmount() {
     this.sub.unsubscribe();
 
-    //try to update current page in db
+    // try to update current page in db
     try {
       await db.current.get('currentPage').then(async doc => {
         // update
@@ -88,7 +90,7 @@ export default class Home extends React.Component {
       });
     } catch (e) {
       if (e.status === 404) {
-        //theres no current page data, creates one
+        // theres no current page data, creates one
         await db.current.put({_id: 'currentPage', data: this.currentPage});
       }
     }
@@ -97,13 +99,13 @@ export default class Home extends React.Component {
   render() {
     const {series} = this.state;
 
-    //if series is ready, ends loading..
+    // if series is ready, ends loading..
     if (series.length > 0) {
       this.isLoading = false;
     }
 
     let home;
-    //Default home screen
+    // Default home screen
     if (!this.isLoading) {
       home = (
         <div>
@@ -113,8 +115,8 @@ export default class Home extends React.Component {
               loadMore={this.loadItems.bind(this)}
               hasMore={this.hasMoreItems}
               loader={
-                <div className="loader" key={0}>
-                  <h1>Loading...</h1>
+                <div className="scrollLoader" key={0}>
+                  <h1><FormattedMessage id="Loading" defaultMessage="Loading" />...</h1>
                 </div>
               }
             >
@@ -130,18 +132,22 @@ export default class Home extends React.Component {
         </div>
       );
     }
-    //Loading
+    // Loading
     if (this.isLoading) {
       home = (
         <div>
           <div className="MainContent">
-            <Message icon>
-              <Icon name="circle notched" loading />
-              <Message.Content>
-                <Message.Header>Loading Crunchy..</Message.Header>
-                Just one second!
-              </Message.Content>
-            </Message>
+            <div className="loader">
+              <Message icon>
+                <Icon name="circle notched" loading />
+                <Message.Content>
+                  <Message.Header>
+                    <FormattedMessage id="Loading" defaultMessage="Loading" /> Crunchy
+                  </Message.Header>
+                  <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
+                </Message.Content>
+              </Message>
+            </div>
           </div>
         </div>
       );

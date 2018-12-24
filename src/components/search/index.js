@@ -44,7 +44,7 @@ export default class SearchComponent extends React.Component {
 
   async handleResultSelect(e, {result}) {
     const baseURL = 'https://www.crunchyroll.com';
-    //Open series page
+    // Open series page
     const formatedSeries = {
       url: `${baseURL}${result.link}`,
       title: result.title,
@@ -56,7 +56,7 @@ export default class SearchComponent extends React.Component {
       state: formatedSeries,
     };
 
-    //Store at current db to return after
+    // Store at current db to return after
     try {
       const doc = await db.current.get('series');
       const update = {

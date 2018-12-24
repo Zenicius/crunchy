@@ -1,6 +1,8 @@
 // npm
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../../db';
 // ui
@@ -41,7 +43,7 @@ export default withRouter(({series, history}) => {
             <Image src={series.image} alt={series.title} fluid />
             <Card.Content extra>
               <Icon name="play" />
-              {series.count} Episodes
+              {series.count} <FormattedMessage id="Series.Count" defaultMessage="Episodes" />
             </Card.Content>
           </Card>
         }

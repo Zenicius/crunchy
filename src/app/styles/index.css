@@ -23,6 +23,10 @@ body{
 }
 
 .loader{
+   margin-top: 50px;
+}
+
+.scrollLoader{
     margin-top: 20px;
     text-align: center;
 }

@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+//localization
+import {FormattedMessage} from 'react-intl';
 //ui
 import {Popup, Grid, Card, Icon, Image} from 'semantic-ui-react';
 
@@ -34,7 +36,7 @@ export default withRouter(({episode, history}) => {
             </Card.Content>
             <Card.Content extra>
               <Icon name="play" />
-              Watch
+              <FormattedMessage id="Series.Watch" defaultMessage="Watch" />
             </Card.Content>
           </Card>
         }

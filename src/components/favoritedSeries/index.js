@@ -1,10 +1,12 @@
 // npm
 import React from 'react';
 import {withRouter} from 'react-router-dom';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../../db';
 // ui
-import {Popup, Grid, Card, Button, Image, Icon} from 'semantic-ui-react';
+import {Popup, Grid, Card, Image, Icon} from 'semantic-ui-react';
 
 export default withRouter(({series, history}) => {
   // Open Series Page
@@ -41,7 +43,7 @@ export default withRouter(({series, history}) => {
             <Image src={series.image} alt={series.title} fluid />
             <Card.Content extra>
               <Icon name="play" />
-              Watch
+              <FormattedMessage id="Series.Watch" defaultMessage="Watch" />
             </Card.Content>
           </Card>
         }

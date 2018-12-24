@@ -1,6 +1,8 @@
 //npm
 import React from 'react';
 import {Observable} from 'rxjs';
+//localization
+import {FormattedMessage} from 'react-intl';
 //db
 import db from '../db';
 //components
@@ -58,7 +60,7 @@ export default class Favorites extends React.Component {
   render() {
     const {series, isEmpty} = this.state;
 
-    //if series is ready, ends loading..
+    // if series is ready, ends loading..
     if (series.length > 0 || isEmpty) {
       this.isLoading = false;
     }
@@ -86,8 +88,10 @@ export default class Favorites extends React.Component {
             <Message icon>
               <Icon name="circle notched" loading />
               <Message.Content>
-                <Message.Header>Loading Favorites..</Message.Header>
-                Just one second!
+                <Message.Header>
+                  <FormattedMessage id="Loading.Favorites" defaultMessage="Loading Favorites.." />
+                </Message.Header>
+                <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
               </Message.Content>
             </Message>
           </div>
@@ -102,8 +106,13 @@ export default class Favorites extends React.Component {
             <Message warning icon>
               <Icon name="info" />
               <Message.Content>
-                <Message.Header>Favorites is Empty..</Message.Header>
-                Add series to your favorites before coming here!
+                <Message.Header>
+                  <FormattedMessage id="Warning.FavoritesEmpty" defaultMessage="Favorites is Empty.." />
+                </Message.Header>
+                <FormattedMessage
+                  id="Warning.FavoritesEmptyMessage"
+                  defaultMessage="Add series to your favorites before coming here!"
+                />
               </Message.Content>
             </Message>
           </div>

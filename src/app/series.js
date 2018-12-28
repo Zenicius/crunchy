@@ -28,7 +28,7 @@ export default class Series extends React.Component {
 
   async init(props) {
     // Series to show at loading
-    this.series = this.props.location.state;
+    this.series = props.location.state;
     // Starts Loading..
     this.isLoading = true;
 

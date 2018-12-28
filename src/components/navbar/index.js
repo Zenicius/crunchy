@@ -18,9 +18,12 @@ import {Menu, Dropdown, Image, Segment, Container, Button, Icon} from 'semantic-
 class Navbar extends React.Component {
   constructor(props) {
     super(props);
+
     this.history = this.props.history;
-    this.activeItem = 'Home';
+    this.changedLang = false;
+
     this.state = {
+      activeItem: '/',
       user: null,
       loading: true,
       logedin: false,
@@ -35,11 +38,17 @@ class Navbar extends React.Component {
   }
 
   async init() {
+    // dont init after language change while still in /settings
+    const pathname = this.props.location.pathname;
+    if (pathname == '/settings') {
+      this.changedLang = true;
+      return;
+    }
+
     // get user
-    let user;
     try {
       await Crunchyroll.getUser();
-      user = await db.current.get('user');
+      const user = await db.current.get('user');
       this.setState({
         logedin: true,
         user: user,
@@ -52,6 +61,40 @@ class Navbar extends React.Component {
           loading: false,
         });
       }
+    }
+  }
+
+  async componentDidUpdate() {
+    const pathname = this.props.location.pathname;
+    const {activeItem} = this.state;
+
+    // fix wrong active tab when back from series and settings, also fix current active tab when after language switch
+    if ((pathname == '/' || pathname == '/favorites' || pathname == '/my') && activeItem != pathname) {
+      this.setState({
+        activeItem: pathname,
+      });
+    }
+
+    // get user after language change
+    if (this.changedLang && pathname != '/settings') {
+      // get user
+      try {
+        const user = await db.current.get('user');
+        this.setState({
+          logedin: true,
+          user: user,
+          loading: false,
+        });
+      } catch (e) {
+        if (e.name == 'not_found') {
+          this.setState({
+            logedin: false,
+            loading: false,
+          });
+        }
+      }
+
+      this.changedLang = false;
     }
   }
 
@@ -87,18 +130,14 @@ class Navbar extends React.Component {
 
   handleActiveItem(e, {name}) {
     // Change active item to current page
-    this.activeItem = name;
+    this.setState({
+      activeItem: name,
+    });
   }
 
   render() {
-    const {user, loading, logedin, onLogin} = this.state;
+    const {user, loading, logedin, onLogin, activeItem} = this.state;
     const pathname = this.props.location.pathname;
-    const activeItem = this.activeItem;
-
-    // fix wrong active tab when back from series and settings
-    if ((pathname == '/' && activeItem != 'Home') || pathname === '/crlogin' || pathname === '/crlogout') {
-      this.activeItem = 'Home';
-    }
 
     // only show genres dropwdown when on home and searching by genres
     let genresDropdown;
@@ -162,37 +201,25 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh5.googleusercontent.com/MvOrgphyz3IrnuC6xM9BhTeTI_Cv4jEzpM0SGfPNQd-OmfLDNj3sceUsmde3LleoCsI5-9lzPwQkJE1zBjGp=w1919-h937"
+                    src="https://lh6.googleusercontent.com/iq4bZjdVCodPrDO2XDjHdQg1ui5ns8M5O4tlYUv4j0ghaw5u2qtILNzL-81ATEv9Swpt9vcdJL8zkgugoHwJ=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>
-                <Menu.Item
-                  name="Home"
-                  as={Link}
-                  to="/"
-                  active={this.activeItem === 'Home'}
-                  onClick={this.handleActiveItem}
-                >
+                <Menu.Item name="/" as={Link} to="/" active={activeItem === '/'} onClick={this.handleActiveItem}>
                   <Icon name="video play" size="large" />
                   <FormattedMessage id="Navbar.AnimeButton" defaultMessage="Anime" />
                 </Menu.Item>
                 <Menu.Item
-                  name="Favorites"
+                  name="/favorites"
                   as={Link}
                   to="/favorites"
-                  active={this.activeItem === 'Favorites'}
+                  active={activeItem === '/favorites'}
                   onClick={this.handleActiveItem}
                 >
                   <Icon name="heart" size="large" />
                   <FormattedMessage id="Navbar.FavoritesButton" defaultMessage="Favorites" />
                 </Menu.Item>
-                <Menu.Item
-                  name="My Series"
-                  as={Link}
-                  to="/my"
-                  active={this.activeItem === 'My Series'}
-                  onClick={this.handleActiveItem}
-                >
+                <Menu.Item name="/my" as={Link} to="/my" active={activeItem === '/my'} onClick={this.handleActiveItem}>
                   <Icon name="list ol" size="large" />
                   <FormattedMessage id="Navbar.QueueButton" defaultMessage="Queue" />
                 </Menu.Item>

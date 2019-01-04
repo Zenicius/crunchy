@@ -1,15 +1,17 @@
-// packages
+//npm
 import request from 'request-promise-native';
 import cheerio from 'cheerio';
 import {M3U} from 'playlist-parser';
 import electron from 'electron';
 import _ from 'lodash';
-// db
+//db
 import db from '../db';
 //subtitles
 import parseXml from './parseXml';
 import decode from './subtitles';
 import bytesToAss from './subtitles/ass';
+//preferences
+import Preferences from '../localization/preferences';
 
 // URL
 const baseURL = 'https://www.crunchyroll.com';
@@ -18,19 +20,67 @@ const baseURL = 'https://www.crunchyroll.com';
 class Crunchyroll {
   constructor() {
     this.authCookies = null;
+    this.forceLanguage = null;
+    this.saveUser = null;
+    this.language = null;
     this.isInited = this.init();
   }
 
   async init() {
-    if (this.authCookies) {
+    if (this.authCookies && this.forceLanguage && this.saveUser) {
       return;
     }
-    // load auth
+
+    // preferences, get language
+    const preferences = new Preferences();
+    var lang = preferences.get('lang');
+    if (lang == 'pt') {
+      lang += 'BR';
+    } else
+      lang += 'US';
+
+    this.language = lang;
+
+    // load auth and settings
     try {
       this.authCookies = await db.auth.get('crunchyroll');
     } catch (e) {
       if (e.name === 'not_found') {
         this.authCookies = null;
+      }
+    }
+
+    try {
+      const settings = await db.settings.get('settings');
+      this.forceLanguage = settings.toggleforce;
+      this.saveUser = settings.togglesave;
+    } catch (e) {
+      if (e.name === 'not_found') {
+        this.forceLanguage = true;
+        this.saveUser = true;
+      }
+    }
+  }
+
+  async updateSettings() {
+    // update lang
+    const preferences = new Preferences();
+    var lang = preferences.get('lang');
+    if (lang == 'pt') {
+      lang += 'BR';
+    } else
+      lang += 'US';
+
+    this.language = lang;
+
+    // update force language
+    try {
+      const settings = await db.settings.get('settings');
+      this.forceLanguage = settings.toggleforce;
+      this.saveUser = settings.togglesave;
+    } catch (e) {
+      if (e.name === 'not_found') {
+        this.forceLanguage = true;
       }
     }
   }
@@ -42,22 +92,28 @@ class Crunchyroll {
     }
 
     const remote = electron.remote;
+
     // main window
     const mainWindow = remote.getCurrentWindow();
     const BrowserWindow = remote.BrowserWindow;
+
     // creat new window
     let loginWin = new BrowserWindow({width: 800, height: 600, parent: mainWindow, modal: true});
+
     // disable menu
     loginWin.setMenu(null);
+
     // cleanup
     loginWin.on('closed', () => {
       loginWin = null;
       // Handle login complete at navbar
       component.handleLoginCompleted();
     });
+
     // wait page finish loading
     loginWin.webContents.on('did-finish-load', () => {
       console.log('Current URL: ', loginWin.webContents.getURL());
+
       // auth suceccesful
       if (loginWin.webContents.getURL() === 'https://www.crunchyroll.com/') {
         loginWin.webContents.session.cookies.get({}, async (error, cookies) => {
@@ -65,11 +121,20 @@ class Crunchyroll {
             console.log('Error: Failed to get cookies');
             return;
           }
+
           // Store auth cookies (filter for crunchyroll cookies only)
           this.authCookies = cookies.filter(c => c.domain.includes('crunchyroll.com'));
-          await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
-          this.authCookies = await db.auth.get('crunchyroll');
+
+          if (this.saveUser) {
+            await db.auth.put({_id: 'crunchyroll', cookies: this.authCookies});
+            this.authCookies = await db.auth.get('crunchyroll');
+          } else {
+            await db.current.put({_id: 'crunchyroll', cookies: this.authCookies});
+            this.authCookies = await db.current.get('crunchyroll');
+          }
+
           console.log('Auth: Saved cookies');
+
           // closes window
           loginWin.close();
         });
@@ -86,7 +151,12 @@ class Crunchyroll {
     await db.current.remove(user);
 
     // Remove cookies from db
-    await db.auth.remove(this.authCookies);
+    try {
+      await db.auth.remove(this.authCookies);
+    } catch (e) {
+      await db.current.remove(this.authCookies);
+    }
+
     this.authCookies = null;
   }
 
@@ -102,6 +172,10 @@ class Crunchyroll {
       const cookie = request.cookie(`${data.name}=${data.value}`);
       jar.setCookie(cookie, `${baseURL}${data.path}`);
     });
+
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
 
     // request page html
     const data = await request({
@@ -148,10 +222,21 @@ class Crunchyroll {
     // load home series
     console.log('Crunchy: Getting popular series');
 
+    // cookies
+    const jar = request.jar();
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
     // get page
-    const data = await request(`${baseURL}/videos/anime/popular/ajax_page?pg=${page}`);
+    const data = await request({
+      url: `${baseURL}/videos/anime/popular/ajax_page?pg=${page}`,
+      jar,
+    });
+
     // create cheerio cursor
     const $ = cheerio.load(data);
+
     // series
     const series = $('li.group-item')
       .map((index, el) => {
@@ -189,6 +274,12 @@ class Crunchyroll {
     // load series by genre
     console.log('Crunchy: Getting ', genre, ' series');
 
+    // cookies
+    const jar = request.jar();
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
     let hasMorePages = true;
     let page = 0;
 
@@ -196,9 +287,14 @@ class Crunchyroll {
     while (hasMorePages) {
       // get page
       const url = `${baseURL}/videos/anime/genres/ajax_page?pg=${page}&tagged=${genre}`;
-      const data = await request(url);
+      const data = await request({
+        url: url,
+        jar,
+      });
+
       // create cheerio cursor
       const $ = cheerio.load(data);
+
       // series
       const series = $('li.group-item')
         .map((index, el) => {
@@ -261,8 +357,20 @@ class Crunchyroll {
     const url = `${baseURL}${series._id}`;
 
     console.log('Crunchy: Getting episodes for ', url);
+
+    // cookies
+    const jar = request.jar();
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
     // load episodes
-    const data = await request(url);
+    const data = await request({
+      url: url,
+      jar,
+    });
+
+    // cheerio cursor
     const $ = cheerio.load(data);
 
     // episodes
@@ -280,7 +388,7 @@ class Crunchyroll {
         const number = title.replace(/^\D+/g, '');
         var season = $('a.episode', element).attr('title').replace(title, '');
 
-        //unique season or no seasons
+        // unique season or no seasons
         if (series.title.trim() === season.trim()) {
           season = 'unique';
         }
@@ -312,10 +420,21 @@ class Crunchyroll {
 
     console.log('Crunchy: Getting info for ', url);
 
+    // cookies
+    const jar = request.jar();
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
     // Loads data
-    const data = await request(url);
-    // load infori
+    const data = await request({
+      url: url,
+      jar,
+    });
+
+    // cheerio cursor
     const $ = cheerio.load(data);
+
     // info
     const title = $('[itemprop=name]').text();
     const sidebar = $('ul.list-block');
@@ -335,18 +454,24 @@ class Crunchyroll {
     let bookmarked = false;
     // check if series is bookmarked
     if (this.authCookies !== null) {
-      // add auth cookies
+      // add auth and language cookies
       const jar = request.jar();
+
       this.authCookies.cookies.forEach(data => {
         const cookie = request.cookie(`${data.name}=${data.value}`);
         jar.setCookie(cookie, `${baseURL}${data.path}`);
       });
+
+      if (this.forceLanguage) {
+        jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+      }
 
       // request page html
       const data = await request({
         url: `${baseURL}/home/queue`,
         jar,
       });
+
       // cheerio cursor
       const $ = cheerio.load(data);
 
@@ -382,10 +507,28 @@ class Crunchyroll {
     await this.isInited;
 
     console.log('Crunchy: Loading episode ', episode.url);
+
+    // cookies
+    const jar = request.jar();
+    if (this.authCookies !== null) {
+      this.authCookies.cookies.forEach(data => {
+        const cookie = request.cookie(`${data.name}=${data.value}`);
+        jar.setCookie(cookie, `${baseURL}${data.path}`);
+      });
+    }
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
     // load episode page
-    const data = await request(episode.url);
+    const data = await request({
+      url: episode.url,
+      jar,
+    });
+
     // cheerio
     const $ = cheerio.load(data);
+
     // available formats
     const formats = [];
     $('a[token^=showmedia]').each((index, el) => {
@@ -402,14 +545,6 @@ class Crunchyroll {
     const xmlUrl = `https://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&` +
       `media_id=${id}&video_format=${format}&video_quality=${format}`;
 
-    // add auth cookies
-    const jar = request.jar();
-    if (this.authCookies !== null) {
-      this.authCookies.cookies.forEach(data => {
-        const cookie = request.cookie(`${data.name}=${data.value}`);
-        jar.setCookie(cookie, `${baseURL}${data.path}`);
-      });
-    }
     const xmlData = await request({
       url: xmlUrl,
       jar,
@@ -447,8 +582,8 @@ class Crunchyroll {
     // get preferred subtitles from db
     let preferredSub;
     try {
-      const preferred = await db.settings.get('preferredSubtitles');
-      preferredSub = preferred.title;
+      const settings = await db.settings.get('settings');
+      preferredSub = settings.preferredsubtitlestitle;
     } catch (e) {
       if (e.name == 'not_found') {
         preferredSub = null;
@@ -499,16 +634,17 @@ class Crunchyroll {
     if (this.authCookies == null) {
       return;
     }
-    // add auth cookies
+
+    // add auth and lang cookies
     const jar = request.jar();
     this.authCookies.cookies.forEach(data => {
       const cookie = request.cookie(`${data.name}=${data.value}`);
       jar.setCookie(cookie, `${baseURL}${data.path}`);
     });
 
-    // force english language
-    // jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
-
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
     // request page html
     const data = await request({
       url: `${baseURL}/home/queue`,
@@ -591,7 +727,9 @@ class Crunchyroll {
   async search() {
     // force english language
     const jar = request.jar();
-    jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
 
     // search catalogue
     const data = await request({
@@ -633,6 +771,10 @@ class Crunchyroll {
       const cookie = request.cookie(`${data.name}=${data.value}`);
       jar.setCookie(cookie, `${baseURL}${data.path}`);
     });
+
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
 
     let options;
     if (option == 1) {

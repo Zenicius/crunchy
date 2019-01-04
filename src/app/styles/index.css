@@ -123,12 +123,31 @@ body{
     margin-left: 15px;
 }
 
+.dbResetContainer{
+    margin-left: 15px;
+    margin-bottom: 40px;
+}
+
+.crunchyrollContainer{
+    margin-top: 10px;
+}
+
+.crunchyrollToggle{
+    margin-left: 15px;
+}
+
 .langButtons{
     margin-bottom: 10px;
 }
 
 .subSettingsMessage{
     color: green;
+    margin-left: 10px;
+    font-weight: bold;
+}
+
+.saveUserWarning{
+    color: #8e7f29;
     margin-left: 10px;
     font-weight: bold;
 }

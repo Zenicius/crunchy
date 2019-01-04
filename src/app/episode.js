@@ -85,8 +85,6 @@ export default class Episode extends React.Component {
     // if videojs is initilized destroy to create another later
     if (this.isPlaying) {
       videojs('video').dispose();
-    } else {
-      return;
     }
   }
 

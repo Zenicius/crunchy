@@ -38,16 +38,18 @@ class Navbar extends React.Component {
   }
 
   async init() {
-    // dont init after language change while still in /settings
+    // dont init after language change and while still in /settings
     const pathname = this.props.location.pathname;
     if (pathname == '/settings') {
       this.changedLang = true;
       return;
     }
 
+    // loads user
+    await Crunchyroll.getUser();
+
     // get user
     try {
-      await Crunchyroll.getUser();
       const user = await db.current.get('user');
       this.setState({
         logedin: true,
@@ -201,7 +203,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh6.googleusercontent.com/iq4bZjdVCodPrDO2XDjHdQg1ui5ns8M5O4tlYUv4j0ghaw5u2qtILNzL-81ATEv9Swpt9vcdJL8zkgugoHwJ=w1919-h937"
+                    src="https://lh4.googleusercontent.com/-bItNX2Yl1RyNhqEN3T2whsvCgy1hlBKRpzlqSM-5l0CBw5boOU_jXhlaWU53AzyJPYCac0RXzZJv7pflwiA=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>

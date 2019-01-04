@@ -5,7 +5,7 @@ import {IntlProvider, addLocaleData, injectIntl} from 'react-intl';
 import localeData from './data.json';
 import en from 'react-intl/locale-data/en';
 import pt from 'react-intl/locale-data/pt';
-// preferences
+//preferences
 import Preferences from './preferences';
 
 addLocaleData([...en, ...pt]);

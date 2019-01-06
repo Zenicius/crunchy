@@ -29,12 +29,12 @@ class ReactIntlContextProvider extends React.Component {
 
     // switch functions
     this.switchToEnglish = () => {
-      console.log('Crunchy: Switching to language to english');
+      console.log('Crunchy: Switching language to english');
       this.setState({locale: 'en', messages: messagesEn});
       preferences.set('lang', 'en');
     };
     this.switchToPortuguese = () => {
-      console.log('Crunchy: Switching to language to portuguese');
+      console.log('Crunchy: Switching language to portuguese');
       this.setState({locale: 'pt', messages: messagesPt});
       preferences.set('lang', 'pt');
     };

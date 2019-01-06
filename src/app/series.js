@@ -10,17 +10,25 @@ import {Crunchyroll} from '../crunchyroll';
 //components
 import SeriesInfo from '../components/seriesinfo';
 import Episodes from '../components/episodes';
+import CommentComponent from '../components/comment';
 //ui
-import {Grid, Button, Icon, Message, Divider} from 'semantic-ui-react';
+import {Grid, Button, Icon, Message, Divider, Tab, Menu, Comment} from 'semantic-ui-react';
 
 export default class Series extends React.Component {
   constructor(props) {
     super(props);
-    this.isLoading = false;
     this.series = null;
+    this.episodesLenght = null;
     this.state = {
       episodes: [],
+      comments: [],
+      commentsPage: 1,
+      commentsPageCanGoBack: false,
+      series: null,
       info: null,
+      loading: true,
+      loadingEpisodes: true,
+      loadingComments: true,
     };
 
     this.init(props);
@@ -29,20 +37,28 @@ export default class Series extends React.Component {
   async init(props) {
     // Series to show at loading
     this.series = props.location.state;
-    // Starts Loading..
-    this.isLoading = true;
 
     // get series
     const series = await this.getSeries(props);
-    await Crunchyroll.getEpisodes(series);
 
     // get series info
     const info = await Crunchyroll.getInfo(series);
     if (this._isMounted) {
       this.setState({
         info: info,
+        series: series,
       });
     }
+
+    // get episodes and total episodes
+    this.episodesLenght = await Crunchyroll.getEpisodes(series);
+
+    // get comments
+    const comments = await Crunchyroll.getComments(series._id, 1);
+    this.setState({
+      comments: comments,
+      loadingComments: false,
+    });
   }
 
   async componentDidMount() {
@@ -67,6 +83,34 @@ export default class Series extends React.Component {
       .subscribe(episodes => this.setState({episodes}));
   }
 
+  componentDidUpdate() {
+    const {info, loading, episodes, loadingEpisodes, commentsPage, commentsPageCanGoBack} = this.state;
+
+    // ends loading
+    if (info != null && loading) {
+      this.setState({
+        loading: false,
+      });
+    }
+
+    if (episodes.length == this.episodesLenght && loadingEpisodes) {
+      this.setState({
+        loadingEpisodes: false,
+      });
+    }
+
+    // determines if comments page can go back
+    if (commentsPage > 1 && !commentsPageCanGoBack) {
+      this.setState({
+        commentsPageCanGoBack: true,
+      });
+    } else if (commentsPage <= 1 && commentsPageCanGoBack) {
+      this.setState({
+        commentsPageCanGoBack: false,
+      });
+    }
+  }
+
   componentWillUnmount() {
     this._isMounted = false;
 
@@ -83,8 +127,41 @@ export default class Series extends React.Component {
     return series;
   }
 
+  async loadComments(option) {
+    const {series, commentsPage} = this.state;
+
+    // next page
+    if (option == 1) {
+      // loading
+      this.setState({
+        loadComments: true,
+      });
+
+      const comments = await Crunchyroll.getComments(series._id, commentsPage + 1);
+      this.setState({
+        comments: comments,
+        loadComments: false,
+        commentsPage: commentsPage + 1,
+      });
+    } else if (option == 0) {
+      // previous page
+
+      // loading
+      this.setState({
+        loadComments: true,
+      });
+
+      const comments = await Crunchyroll.getComments(series._id, commentsPage - 1);
+      this.setState({
+        comments: comments,
+        loadComments: false,
+        commentsPage: commentsPage - 1,
+      });
+    }
+  }
+
   render() {
-    const {episodes, info} = this.state;
+    const {episodes, info, loading, loadingEpisodes, comments, loadingComments, commentsPageCanGoBack} = this.state;
     const {history} = this.props;
 
     let title;
@@ -94,48 +171,83 @@ export default class Series extends React.Component {
       title = this.series.title;
     }
 
-    // if episodes and info is ready, ends loading.
-    if (episodes.length > 0 && info !== null) {
-      this.isLoading = false;
-    }
+    const series = (
+      <div>
+        <Grid columns="equal">
+          <Grid.Row stretched>
+            {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
+          </Grid.Row>
+        </Grid>
+      </div>
+    );
 
-    let series;
-    // Main series page
-    if (!this.isLoading) {
-      series = (
-        <div>
-          <SeriesInfo info={info} />
-          <Divider horizontal><FormattedMessage id="Series.Episodes" defaultMessage="Episodes" /></Divider>
-          <Grid columns="equal">
-            <Grid.Row stretched>
-              {episodes.map(epi => <Episodes key={epi._id} episode={epi} />)}
-            </Grid.Row>
-          </Grid>
-        </div>
-      );
-    }
-    // Loading..
-    if (this.isLoading) {
-      series = (
-        <div>
-          <Divider />
-          <Message icon>
-            <Icon name="circle notched" loading />
-            <Message.Content>
-              <Message.Header><FormattedMessage id="Loading" defaultMessage="Loading" /> {title}</Message.Header>
-              <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
-            </Message.Content>
-          </Message>
-        </div>
-      );
-    }
+    const commentsTab = (
+      <div>
+        <Comment.Group size="large">
+          {comments.map(comment => <CommentComponent key={comment.comment.id} commentData={comment} />)}
+        </Comment.Group>
+        {commentsPageCanGoBack
+          ? <Button icon labelPosition="left" onClick={() => this.loadComments(0)}>
+              Previous Page
+              <Icon name="left arrow" />
+            </Button>
+          : null}
+        <Button icon labelPosition="right" onClick={() => this.loadComments(1)}>
+          Next Page
+          <Icon name="right arrow" />
+        </Button>
+      </div>
+    );
+
+    // tabs
+    const panes = [
+      {
+        menuItem: (
+          <Menu.Item key="episodes">
+            <FormattedMessage id="SeriesTab.Episodes" defaultMessage="Episodes" />
+          </Menu.Item>
+        ),
+        render: () => loadingEpisodes ? <Tab.Pane loading /> : <Tab.Pane>{series}</Tab.Pane>,
+      },
+      {
+        menuItem: (
+          <Menu.Item key="comments">
+            <FormattedMessage id="SeriesTab.Comments" defaultMessage="Comments" />
+          </Menu.Item>
+        ),
+        render: () => loadingComments ? <Tab.Pane loading /> : <Tab.Pane>{commentsTab}</Tab.Pane>,
+      },
+      {
+        menuItem: (
+          <Menu.Item key="reviews">
+            <FormattedMessage id="SeriesTab.Reviews" defaultMessage="Reviews" />
+          </Menu.Item>
+        ),
+        render: () => <Tab.Pane>SOON</Tab.Pane>,
+      },
+    ];
+
     return (
       <div>
         <Button href="#back" icon labelPosition="left" color="grey" className="button" onClick={() => history.goBack()}>
           <Icon name="arrow left" />
           <FormattedMessage id="Button.Back" defaultMessage="Back" />
         </Button>
-        {series}
+        {loading
+          ? <div>
+              <Divider />
+              <Message icon>
+                <Icon name="circle notched" loading />
+                <Message.Content>
+                  <Message.Header><FormattedMessage id="Loading" defaultMessage="Loading" /> {title}</Message.Header>
+                  <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
+                </Message.Content>
+              </Message>
+            </div>
+          : <div>
+              <SeriesInfo info={info} />
+              <Tab className="seriesTab" panes={panes} />
+            </div>}
       </div>
     );
   }

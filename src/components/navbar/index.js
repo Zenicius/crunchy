@@ -203,7 +203,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh4.googleusercontent.com/-bItNX2Yl1RyNhqEN3T2whsvCgy1hlBKRpzlqSM-5l0CBw5boOU_jXhlaWU53AzyJPYCac0RXzZJv7pflwiA=w1919-h937"
+                    src="https://lh3.googleusercontent.com/qcjtKJXIG1Lb9swUbKSPosMQlp2QWKARrnM5cM9wKQvkNxQWDFEqpxKWeABhKea0PtFyFHsep614wOqcYqwW=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>

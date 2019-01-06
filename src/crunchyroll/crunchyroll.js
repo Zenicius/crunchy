@@ -408,7 +408,10 @@ class Crunchyroll {
 
     // store in the db
     await db.episodes.bulkDocs(episodes);
-    return episodes;
+
+    console.log('crunchy', episodes.length);
+
+    return episodes.length;
   }
 
   async getInfo(series) {
@@ -810,6 +813,42 @@ class Crunchyroll {
 
       console.log(jsonObject.message_list[0].type, ': ', jsonObject.message_list[0].message_body);
     });
+  }
+
+  async getComments(series, page = 1) {
+    // cookies
+    const jar = request.jar();
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
+    // request comments data
+    const data = await request({
+      url: `https://www.crunchyroll.com${series}/discussions/page${page}`,
+      jar,
+    });
+
+    // cheerio cursor
+    const $ = cheerio.load(data);
+
+    // comments data depending on page
+    var commentsData = $('#showview_content_comments').text();
+    if (page == 1) {
+      const start = () => {
+        return commentsData.indexOf('var pagedata =') + 15;
+      };
+
+      const end = () => {
+        return commentsData.lastIndexOf('}}];') + 3;
+      };
+
+      commentsData = commentsData.substring(start(), end());
+    }
+
+    // parse to js object
+    const comments = JSON.parse(commentsData);
+
+    return comments;
   }
 }
 

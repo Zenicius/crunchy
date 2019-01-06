@@ -55,7 +55,10 @@
       "Series.Queue": "Queue",
       "Series.Favorite": "Favorite",
       "Series.Genres": "Genres",
-      "Series.Description": "Description"
+      "Series.Description": "Description",
+      "SeriesTab.Episodes": "Episodes",
+      "SeriesTab.Comments": "Comments",
+      "SeriesTab.Reviews": "Reviews"
     },
     "pt": {
       "Button.Back": "Voltar",
@@ -113,6 +116,9 @@
       "Series.Queue": "Fila",
       "Series.Favorite": "Favoritos",
       "Series.Genres": "Gêneros",
-      "Series.Description": "Descrição"
+      "Series.Description": "Descrição",
+      "SeriesTab.Episodes": "Episódios",
+      "SeriesTab.Comments": "Comentários",
+      "SeriesTab.Reviews": "Resenhas"
     }
   }

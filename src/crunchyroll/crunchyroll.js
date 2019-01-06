@@ -12,6 +12,7 @@ import decode from './subtitles';
 import bytesToAss from './subtitles/ass';
 //preferences
 import Preferences from '../localization/preferences';
+import {createCipher} from 'crypto';
 
 // URL
 const baseURL = 'https://www.crunchyroll.com';
@@ -409,8 +410,6 @@ class Crunchyroll {
     // store in the db
     await db.episodes.bulkDocs(episodes);
 
-    console.log('crunchy', episodes.length);
-
     return episodes.length;
   }
 
@@ -730,9 +729,7 @@ class Crunchyroll {
   async search() {
     // force english language
     const jar = request.jar();
-    if (this.forceLanguage) {
-      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
-    }
+    jar.setCookie(request.cookie(`c_locale=enUS`), baseURL);
 
     // search catalogue
     const data = await request({
@@ -816,6 +813,8 @@ class Crunchyroll {
   }
 
   async getComments(series, page = 1) {
+    console.log('Crunchy: getting comments for ', series, 'page: ', page);
+
     // cookies
     const jar = request.jar();
     if (this.forceLanguage) {
@@ -832,23 +831,28 @@ class Crunchyroll {
     const $ = cheerio.load(data);
 
     // comments data depending on page
-    var commentsData = $('#showview_content_comments').text();
+    var commentsData = $('#showview_content_comments').text().trim();
     if (page == 1) {
       const start = () => {
         return commentsData.indexOf('var pagedata =') + 15;
       };
 
       const end = () => {
-        return commentsData.lastIndexOf('}}];') + 3;
+        return commentsData.lastIndexOf('];') + 1;
       };
 
+      console.log('numbers', start(), end());
       commentsData = commentsData.substring(start(), end());
     }
 
-    // parse to js object
-    const comments = JSON.parse(commentsData);
+    const shouldReturnNull = commentsData.substring(0, 1) != '[';
 
-    return comments;
+    if (shouldReturnNull) {
+      return null;
+    } else {
+      const comments = JSON.parse(commentsData);
+      return comments;
+    }
   }
 }
 

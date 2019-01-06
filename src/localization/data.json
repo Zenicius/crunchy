@@ -58,7 +58,10 @@
       "Series.Description": "Description",
       "SeriesTab.Episodes": "Episodes",
       "SeriesTab.Comments": "Comments",
-      "SeriesTab.Reviews": "Reviews"
+      "SeriesTab.Reviews": "Reviews",
+      "SeriesTab.NoMoreComments": "No More Comments",
+      "SeriesTab.PreviousPage": "Previous Page",
+      "SeriesTab.NextPage": "Next Page"
     },
     "pt": {
       "Button.Back": "Voltar",
@@ -119,6 +122,10 @@
       "Series.Description": "Descrição",
       "SeriesTab.Episodes": "Episódios",
       "SeriesTab.Comments": "Comentários",
-      "SeriesTab.Reviews": "Resenhas"
+      "SeriesTab.Reviews": "Resenhas",
+      "SeriesTab.NoMoreComments": "Não há mais comentários",
+      "SeriesTab.PreviousPage": "Página Anterior",
+      "SeriesTab.NextPage": "Próxima Página"
+      
     }
   }

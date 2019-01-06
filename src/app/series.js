@@ -24,6 +24,7 @@ export default class Series extends React.Component {
       comments: [],
       commentsPage: 1,
       commentsPageCanGoBack: false,
+      noMoreComments: false,
       series: null,
       info: null,
       loading: true,
@@ -55,10 +56,21 @@ export default class Series extends React.Component {
 
     // get comments
     const comments = await Crunchyroll.getComments(series._id, 1);
-    this.setState({
-      comments: comments,
-      loadingComments: false,
-    });
+
+    if (this._isMounted) {
+      if (comments == null) {
+        this.setState({
+          noMoreComments: true,
+          loadingComments: false,
+        });
+      } else {
+        this.setState({
+          comments: comments,
+          loadingComments: false,
+          noMoreComments: false,
+        });
+      }
+    }
   }
 
   async componentDidMount() {
@@ -134,34 +146,58 @@ export default class Series extends React.Component {
     if (option == 1) {
       // loading
       this.setState({
-        loadComments: true,
+        loadingComments: true,
       });
 
+      // get comments
       const comments = await Crunchyroll.getComments(series._id, commentsPage + 1);
-      this.setState({
-        comments: comments,
-        loadComments: false,
-        commentsPage: commentsPage + 1,
-      });
+
+      // checks if has more comments
+      if (comments == null) {
+        this.setState({
+          loadingComments: false,
+          noMoreComments: true,
+          commentsPage: commentsPage + 1,
+        });
+      } else {
+        this.setState({
+          comments: comments,
+          loadingComments: false,
+          commentsPage: commentsPage + 1,
+          noMoreComments: false,
+        });
+      }
     } else if (option == 0) {
       // previous page
 
       // loading
       this.setState({
-        loadComments: true,
+        loadingComments: true,
       });
 
+      // get comments
       const comments = await Crunchyroll.getComments(series._id, commentsPage - 1);
+
       this.setState({
         comments: comments,
-        loadComments: false,
+        loadingComments: false,
         commentsPage: commentsPage - 1,
+        noMoreComments: false,
       });
     }
   }
 
   render() {
-    const {episodes, info, loading, loadingEpisodes, comments, loadingComments, commentsPageCanGoBack} = this.state;
+    const {
+      episodes,
+      info,
+      loading,
+      loadingEpisodes,
+      comments,
+      loadingComments,
+      commentsPageCanGoBack,
+      noMoreComments,
+    } = this.state;
     const {history} = this.props;
 
     let title;
@@ -184,18 +220,26 @@ export default class Series extends React.Component {
     const commentsTab = (
       <div>
         <Comment.Group size="large">
-          {comments.map(comment => <CommentComponent key={comment.comment.id} commentData={comment} />)}
+          {noMoreComments
+            ? <div>
+                <span><FormattedMessage id="SeriesTab.NoMoreComments" defaultMessage="No More Comments" />!</span>
+              </div>
+            : comments
+                .filter(comment => comment != null)
+                .map(comment => <CommentComponent key={comment.comment.id} commentData={comment} />)}
         </Comment.Group>
         {commentsPageCanGoBack
           ? <Button icon labelPosition="left" onClick={() => this.loadComments(0)}>
-              Previous Page
+              <FormattedMessage id="SeriesTab.PreviousPage" defaultMessage="Previous Page" />
               <Icon name="left arrow" />
             </Button>
           : null}
-        <Button icon labelPosition="right" onClick={() => this.loadComments(1)}>
-          Next Page
-          <Icon name="right arrow" />
-        </Button>
+        {noMoreComments
+          ? null
+          : <Button icon labelPosition="right" onClick={() => this.loadComments(1)}>
+              <FormattedMessage id="SeriesTab.NextPage" defaultMessage="Next Page" />
+              <Icon name="right arrow" />
+            </Button>}
       </div>
     );
 

@@ -12,7 +12,7 @@ import SeriesInfo from '../components/seriesinfo';
 import Episodes from '../components/episodes';
 import CommentComponent from '../components/comment';
 //ui
-import {Grid, Button, Icon, Message, Divider, Tab, Menu, Comment} from 'semantic-ui-react';
+import {Grid, Button, Icon, Message, Divider, Tab, Menu, Comment, Form, Header} from 'semantic-ui-react';
 
 export default class Series extends React.Component {
   constructor(props) {
@@ -22,6 +22,7 @@ export default class Series extends React.Component {
     this.state = {
       episodes: [],
       comments: [],
+      logedin: false,
       commentsPage: 1,
       commentsPageCanGoBack: false,
       noMoreComments: false,
@@ -30,7 +31,12 @@ export default class Series extends React.Component {
       loading: true,
       loadingEpisodes: true,
       loadingComments: true,
+      commentValue: '',
+      commentFormLoading: false,
     };
+
+    this.handleTextChange = this.handleTextChange.bind(this);
+    this.postComment = this.postComment.bind(this);
 
     this.init(props);
   }
@@ -39,8 +45,9 @@ export default class Series extends React.Component {
     // Series to show at loading
     this.series = props.location.state;
 
-    // get series
+    // get series and if user is loged in
     const series = await this.getSeries(props);
+    const logedin = Crunchyroll.authCookies != null;
 
     // get series info
     const info = await Crunchyroll.getInfo(series);
@@ -48,6 +55,7 @@ export default class Series extends React.Component {
       this.setState({
         info: info,
         series: series,
+        logedin: logedin,
       });
     }
 
@@ -187,6 +195,39 @@ export default class Series extends React.Component {
     }
   }
 
+  handleTextChange(e, {name, value}) {
+    this.setState({
+      commentValue: value,
+    });
+  }
+
+  async postComment() {
+    const {commentValue, series} = this.state;
+
+    // starts loading
+    this.setState({
+      commentFormLoading: true,
+    });
+
+    await Crunchyroll.postComment(series._id, commentValue);
+
+    // ends loading and returns to first page
+    this.setState({
+      commentFormLoading: false,
+      loadingComments: true,
+      commentsPage: 1,
+    });
+
+    const comments = await Crunchyroll.getComments(series._id, 1);
+
+    this.setState({
+      commentValue: '',
+      comments: comments,
+      loadingComments: false,
+      noMoreComments: false,
+    });
+  }
+
   render() {
     const {
       episodes,
@@ -197,6 +238,9 @@ export default class Series extends React.Component {
       loadingComments,
       commentsPageCanGoBack,
       noMoreComments,
+      commentValue,
+      commentFormLoading,
+      logedin,
     } = this.state;
     const {history} = this.props;
 
@@ -207,6 +251,7 @@ export default class Series extends React.Component {
       title = this.series.title;
     }
 
+    // episodes component
     const series = (
       <div>
         <Grid columns="equal">
@@ -217,29 +262,75 @@ export default class Series extends React.Component {
       </div>
     );
 
+    // comment form component
+    var commentsForm;
+    if (logedin) {
+      commentsForm = commentFormLoading
+        ? <Form reply loading>
+            <Form.TextArea />
+            <FormattedMessage id="SeriesTab.PostComment" defaultMessage="Add Comment">
+              {msg => <Form.Button content={msg} labelPosition="left" icon="edit" primary />}
+            </FormattedMessage>
+          </Form>
+        : <Form reply onSubmit={this.postComment}>
+            <Form.TextArea placeholder="..." value={commentValue} onChange={this.handleTextChange} />
+            <FormattedMessage id="SeriesTab.PostComment" defaultMessage="Add Comment">
+              {msg => <Form.Button content={msg} labelPosition="left" icon="edit" primary />}
+            </FormattedMessage>
+          </Form>;
+    } else {
+      commentsForm = (
+        <Form reply>
+          <Form.TextArea disabled />
+          <FormattedMessage id="SeriesTab.PostComment" defaultMessage="Add Comment">
+            {msg => <Form.Button content={msg} labelPosition="left" icon="edit" primary disabled />}
+          </FormattedMessage>
+        </Form>
+      );
+    }
+
+    // comments tab component
     const commentsTab = (
       <div>
         <Comment.Group size="large">
           {noMoreComments
             ? <div>
-                <span><FormattedMessage id="SeriesTab.NoMoreComments" defaultMessage="No More Comments" />!</span>
+                <span>
+                  <FormattedMessage id="SeriesTab.NoMoreComments" name="comment" defaultMessage="No More Comments" />!
+                </span>
               </div>
             : comments
                 .filter(comment => comment != null)
                 .map(comment => <CommentComponent key={comment.comment.id} commentData={comment} />)}
         </Comment.Group>
-        {commentsPageCanGoBack
-          ? <Button icon labelPosition="left" onClick={() => this.loadComments(0)}>
-              <FormattedMessage id="SeriesTab.PreviousPage" defaultMessage="Previous Page" />
-              <Icon name="left arrow" />
-            </Button>
-          : null}
-        {noMoreComments
-          ? null
-          : <Button icon labelPosition="right" onClick={() => this.loadComments(1)}>
-              <FormattedMessage id="SeriesTab.NextPage" defaultMessage="Next Page" />
-              <Icon name="right arrow" />
-            </Button>}
+
+        <div>
+          {logedin
+            ? <Header as="h3">
+                <FormattedMessage id="SeriesTab.PostCommentHeader" defaultMessage="Write a Comment..." />
+              </Header>
+            : <Header as="h3">
+                <FormattedMessage id="SeriesTab.PostCommentDisabled" defaultMessage="Loggin to post Comments..." />
+              </Header>}
+
+          {commentsForm}
+
+        </div>
+
+        <div className="commentsTabButtons">
+          {commentsPageCanGoBack
+            ? <Button icon labelPosition="left" onClick={() => this.loadComments(0)}>
+                <FormattedMessage id="SeriesTab.PreviousPage" defaultMessage="Previous Page" />
+                <Icon name="left arrow" />
+              </Button>
+            : null}
+          {noMoreComments
+            ? null
+            : <Button icon labelPosition="right" onClick={() => this.loadComments(1)}>
+                <FormattedMessage id="SeriesTab.NextPage" defaultMessage="Next Page" />
+                <Icon name="right arrow" />
+              </Button>}
+        </div>
       </div>
     );
 

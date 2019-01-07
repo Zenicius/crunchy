@@ -12,7 +12,6 @@ import decode from './subtitles';
 import bytesToAss from './subtitles/ass';
 //preferences
 import Preferences from '../localization/preferences';
-import {createCipher} from 'crypto';
 
 // URL
 const baseURL = 'https://www.crunchyroll.com';
@@ -841,7 +840,6 @@ class Crunchyroll {
         return commentsData.lastIndexOf('];') + 1;
       };
 
-      console.log('numbers', start(), end());
       commentsData = commentsData.substring(start(), end());
     }
 
@@ -853,6 +851,75 @@ class Crunchyroll {
       const comments = JSON.parse(commentsData);
       return comments;
     }
+  }
+
+  async postComment(series, body) {
+    await this.isInited;
+
+    // not logged in
+    if (this.authCookies == null) {
+      return;
+    }
+
+    // defines cookies
+    const jar = request.jar();
+    this.authCookies.cookies.forEach(data => {
+      const cookie = request.cookie(`${data.name}=${data.value}`);
+      jar.setCookie(cookie, `${baseURL}${data.path}`);
+    });
+
+    if (this.forceLanguage) {
+      jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
+    }
+
+    // data to get id, token etc.
+    const data = await request({
+      url: `https://www.crunchyroll.com${series}/discussions`,
+      jar,
+    });
+
+    // cheerio cursor
+    const $ = cheerio.load(data);
+
+    // container
+    const contentsContainer = $('div.contents');
+    // get series id
+    const spoiler = $('input[name="spoiler"]', contentsContainer).attr('id');
+    const id = spoiler.substring(spoiler.lastIndexOf('_') + 1, spoiler.length);
+    // token, last comment time and mugsize from input
+    const token = $('input[name="origin_token"]', contentsContainer).attr('value');
+    const lastCommentTime = $('input[name="last_comment_time"]', contentsContainer).attr('value');
+    const mugsize = $('input[name="mugsize"]', contentsContainer).attr('value');
+
+    // options for request
+    const options = {
+      method: 'POST',
+      uri: 'https://www.crunchyroll.com/ajax/',
+      jar,
+      formData: {
+        req: 'RpcApiGuestbook_AddComment',
+        comment_body: body,
+        guestbook_id: id,
+        last_comment_time: lastCommentTime,
+        mugsize: mugsize,
+        origin_token: token,
+      },
+    };
+
+    await request(options).then(response => {
+      const formatedResponse = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1);
+      const responseObj = JSON.parse(formatedResponse);
+
+      console.log(
+        'Crunchy: Status Code:',
+        responseObj.result_code,
+        'Result:',
+        responseObj.message_list[0].type,
+        responseObj.message_list[0].message_body
+      );
+
+      return responseObj;
+    });
   }
 }
 

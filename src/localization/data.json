@@ -61,7 +61,11 @@
       "SeriesTab.Reviews": "Reviews",
       "SeriesTab.NoMoreComments": "No More Comments",
       "SeriesTab.PreviousPage": "Previous Page",
-      "SeriesTab.NextPage": "Next Page"
+      "SeriesTab.NextPage": "Next Page",
+      "SeriesTab.PostCommentHeader": "Write a Comment...",
+      "SeriesTab.PostComment": "Add Comment",
+      "SeriesTab.PostCommentDisabled": "Loggin to post Comments..."
+
     },
     "pt": {
       "Button.Back": "Voltar",
@@ -125,7 +129,9 @@
       "SeriesTab.Reviews": "Resenhas",
       "SeriesTab.NoMoreComments": "Não há mais comentários",
       "SeriesTab.PreviousPage": "Página Anterior",
-      "SeriesTab.NextPage": "Próxima Página"
-      
+      "SeriesTab.NextPage": "Próxima Página",
+      "SeriesTab.PostCommentHeader": "Escreva um Comentário...",
+      "SeriesTab.PostComment": "Adicionar Comentário",
+      "SeriesTab.PostCommentDisabled": "Faça login para postar um comentário..."
     }
   }

@@ -11,14 +11,17 @@ import {Search} from 'semantic-ui-react';
 export default class SearchComponent extends React.Component {
   constructor(props) {
     super(props);
+
     this.history = this.props.history;
     this._isMounted = false;
+
     this.state = {
       isLoading: false,
       results: [],
       value: '',
       source: [],
     };
+
     // gets search catalogue and defines source
     this.init();
 

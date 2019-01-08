@@ -17,8 +17,10 @@ import {Grid, Button, Icon, Message, Divider, Tab, Menu, Comment, Form, Header} 
 export default class Series extends React.Component {
   constructor(props) {
     super(props);
+
     this.series = null;
     this.episodesLenght = null;
+
     this.state = {
       episodes: [],
       comments: [],

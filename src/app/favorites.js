@@ -14,10 +14,11 @@ export default class Favorites extends React.Component {
   constructor(props) {
     super(props);
     //loading
-    this.isLoading = true;
     this.state = {
       series: [],
+      seriesCount: null,
       isEmpty: false,
+      loading: true,
     };
 
     this.checkEmpty();
@@ -32,6 +33,7 @@ export default class Favorites extends React.Component {
       } else {
         this.setState({
           isEmpty: false,
+          seriesCount: result.doc_count,
         });
       }
     });
@@ -53,36 +55,25 @@ export default class Favorites extends React.Component {
       .subscribe(series => this.setState({series}));
   }
 
+  componentDidUpdate() {
+    const {series, seriesCount, isEmpty, loading} = this.state;
+    // ends loading
+    if ((series.length == seriesCount || isEmpty) && loading) {
+      this.setState({
+        loading: false,
+      });
+    }
+  }
+
   componentWillUnmount() {
     this.sub.unsubscribe();
   }
 
   render() {
-    const {series, isEmpty} = this.state;
+    const {series, isEmpty, loading} = this.state;
 
-    // if series is ready, ends loading..
-    if (series.length > 0 || isEmpty) {
-      this.isLoading = false;
-    }
-
-    let home;
-    // Default home screen
-    if (!this.isLoading && !isEmpty) {
-      home = (
-        <div>
-          <div className="MainContent">
-            <Grid columns="equal">
-              <Grid.Row stretched>
-                {series.map(s => <FavoritedSeries key={s._id} series={s} />)}
-              </Grid.Row>
-            </Grid>
-          </div>
-        </div>
-      );
-    }
-    // Loading
-    if (this.isLoading && !isEmpty) {
-      home = (
+    if (loading) {
+      return (
         <div>
           <div className="MainContent">
             <Message icon>
@@ -97,32 +88,33 @@ export default class Favorites extends React.Component {
           </div>
         </div>
       );
-    }
-    // Empty
-    if (isEmpty) {
-      home = (
+    } else {
+      return (
         <div>
-          <div className="MainContent">
-            <Message warning icon>
-              <Icon name="info" />
-              <Message.Content>
-                <Message.Header>
-                  <FormattedMessage id="Warning.FavoritesEmpty" defaultMessage="Favorites is Empty.." />
-                </Message.Header>
-                <FormattedMessage
-                  id="Warning.FavoritesEmptyMessage"
-                  defaultMessage="Add series to your favorites before coming here!"
-                />
-              </Message.Content>
-            </Message>
-          </div>
+          {isEmpty
+            ? <div className="MainContent">
+                <Message warning icon>
+                  <Icon name="info" />
+                  <Message.Content>
+                    <Message.Header>
+                      <FormattedMessage id="Warning.FavoritesEmpty" defaultMessage="Favorites is Empty.." />
+                    </Message.Header>
+                    <FormattedMessage
+                      id="Warning.FavoritesEmptyMessage"
+                      defaultMessage="Add series to your favorites before coming here!"
+                    />
+                  </Message.Content>
+                </Message>
+              </div>
+            : <div className="MainContent">
+                <Grid columns="equal">
+                  <Grid.Row stretched>
+                    {series.map(s => <FavoritedSeries key={s._id} series={s} />)}
+                  </Grid.Row>
+                </Grid>
+              </div>}
         </div>
       );
     }
-    return (
-      <div>
-        {home}
-      </div>
-    );
   }
 }

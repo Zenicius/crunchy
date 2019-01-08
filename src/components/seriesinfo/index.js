@@ -14,13 +14,11 @@ export default class SeriesInfo extends React.Component {
     super(props);
     this.state = {
       info: this.props.info,
-      bookmarked: this.props.info.bookmarked,
       favorited: false,
       loadingBookmark: false,
       loadingFavorited: false,
     };
 
-    this.bookmark = this.bookmark.bind(this);
     this.favorite = this.favorite.bind(this);
   }
 
@@ -41,32 +39,6 @@ export default class SeriesInfo extends React.Component {
           favorited: false,
         });
       }
-    }
-  }
-
-  // Bookmark or Remove
-  async bookmark() {
-    // Not logged-in
-    if (this.state.bookmarked == null) return;
-
-    // triggers loading
-    this.setState({
-      loadingBookmark: true,
-    });
-    if (this.state.bookmarked == true) {
-      // bookmarked, remove from queue
-      await Crunchyroll.bookmarkSeries(2, this.state.info.id);
-      this.setState({
-        bookmarked: false,
-        loadingBookmark: false,
-      });
-    } else if (this.state.bookmarked == false) {
-      // not bookmarked, adds to queue
-      await Crunchyroll.bookmarkSeries(1, this.state.info.id);
-      this.setState({
-        bookmarked: true,
-        loadingBookmark: false,
-      });
     }
   }
 
@@ -125,31 +97,6 @@ export default class SeriesInfo extends React.Component {
     } else
       genresContainer = null;
 
-    // Switch Bookmark button
-    let bookmarkButton;
-    if (this.state.bookmarked == null) {
-      // Not logged in (disabled)
-      bookmarkButton = null;
-    } else if (this.state.bookmarked && !this.state.loadingBookmark) {
-      // Bookmarked (option to remove)
-      bookmarkButton = (
-        <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
-          <Icon name="list ol" />
-          <FormattedMessage id="Series.Remove" defaultMessage="Remove" />
-        </Button>
-      );
-    } else if (!this.state.bookmarked && !this.state.loadingBookmark) {
-      // Not bookmarked (option to add)
-      bookmarkButton = (
-        <Button className="infoBookmarkButton" icon labelPosition="left" onClick={this.bookmark}>
-          <Icon name="list ol" />
-          <FormattedMessage id="Series.Queue" defaultMessage="Queue" />
-        </Button>
-      );
-    } else if (this.state.loadingBookmark) {
-      bookmarkButton = <Button loading>Loading</Button>;
-    }
-
     // Switch favorite button
     let favoriteButtton;
     if (this.loadingFavorited) {
@@ -188,7 +135,7 @@ export default class SeriesInfo extends React.Component {
             <Rating className="infoRating" defaultRating={info.rating} maxRating={5} disabled />
           </div>
           <div className="infoButtonContainer">
-            {favoriteButtton} {bookmarkButton}
+            {favoriteButtton}
           </div>
         </div>
       </div>

@@ -7,7 +7,6 @@ import {IntlProvider} from './localization/context-provider';
 import Home from './app/home';
 import Genres from './app/genres';
 import Favorites from './app/favorites';
-import My from './app/my';
 import Series from './app/series';
 import Episode from './app/episode';
 import Settings from './app/settings';
@@ -26,7 +25,6 @@ ReactDOM.render(
         <Switch>
           <Route exact path="/" component={Home} />
           <Route path="/genre/:value" component={Genres} />
-          <Route exact path="/my" component={My} />
           <Route exact path="/favorites" component={Favorites} />
           <Route path="/series/:id" component={Series} />
           <Route path="/episode/:id" component={Episode} />

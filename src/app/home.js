@@ -16,16 +16,17 @@ import InfiniteScroll from 'react-infinite-scroller';
 export default class Home extends React.Component {
   constructor(props) {
     super(props);
+    // location
+    this.location = this.props.location;
+
     // Scroll
     this.currentPage = 0;
     this.startPage = 0;
     this.hasMoreItems = true;
-    // location
-    this.location = this.props.location;
-    // loading
-    this.isLoading = false;
+
     this.state = {
       series: [],
+      loading: true,
     };
 
     this.init();
@@ -35,9 +36,6 @@ export default class Home extends React.Component {
   }
 
   async init() {
-    // starts Loading..
-    this.isLoading = true;
-
     try {
       const current = await db.current.get('currentPage');
       this.startPage = current.data;
@@ -54,7 +52,6 @@ export default class Home extends React.Component {
     // No more items after page 16
     if (page > 16) {
       this.hasMoreItems = false;
-      console.log('Home: Loaded all pages!');
       return;
     }
     // get page
@@ -77,6 +74,16 @@ export default class Home extends React.Component {
       .subscribe(series => this.setState({series}));
   }
 
+  componentDidUpdate() {
+    const {series, loading} = this.state;
+
+    if (loading && series.length > 0) {
+      this.setState({
+        loading: false,
+      });
+    }
+  }
+
   async componentWillUnmount() {
     this.sub.unsubscribe();
 
@@ -97,64 +104,44 @@ export default class Home extends React.Component {
   }
 
   render() {
-    const {series} = this.state;
+    const {series, loading} = this.state;
 
-    // if series is ready, ends loading..
-    if (series.length > 0) {
-      this.isLoading = false;
-    }
-
-    let home;
-    // Default home screen
-    if (!this.isLoading) {
-      home = (
-        <div>
-          <div className="MainContent">
-            <InfiniteScroll
-              pageStart={this.startPage}
-              loadMore={this.loadItems.bind(this)}
-              hasMore={this.hasMoreItems}
-              loader={
-                <div className="scrollLoader" key={0}>
-                  <h1><FormattedMessage id="Loading" defaultMessage="Loading" />...</h1>
-                </div>
-              }
-            >
-              <div className="tracks">
-                <Grid columns="equal">
-                  <Grid.Row stretched>
-                    {series.map(s => <Series key={s._id} series={s} />)}
-                  </Grid.Row>
-                </Grid>
-              </div>
-            </InfiniteScroll>
-          </div>
-        </div>
-      );
-    }
-    // Loading
-    if (this.isLoading) {
-      home = (
-        <div>
-          <div className="MainContent">
-            <div className="loader">
-              <Message icon>
-                <Icon name="circle notched" loading />
-                <Message.Content>
-                  <Message.Header>
-                    <FormattedMessage id="Loading" defaultMessage="Loading" /> Crunchy
-                  </Message.Header>
-                  <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
-                </Message.Content>
-              </Message>
-            </div>
-          </div>
-        </div>
-      );
-    }
     return (
       <div>
-        {home}
+        {loading
+          ? <div className="MainContent">
+              <div className="loader">
+                <Message icon>
+                  <Icon name="circle notched" loading />
+                  <Message.Content>
+                    <Message.Header>
+                      <FormattedMessage id="Loading" defaultMessage="Loading" /> Crunchy
+                    </Message.Header>
+                    <FormattedMessage id="Loading.DefaultMessage" defaultMessage="Just one second!" />
+                  </Message.Content>
+                </Message>
+              </div>
+            </div>
+          : <div className="MainContent">
+              <InfiniteScroll
+                pageStart={this.startPage}
+                loadMore={this.loadItems.bind(this)}
+                hasMore={this.hasMoreItems}
+                loader={
+                  <div className="scrollLoader" key={0}>
+                    <h1><FormattedMessage id="Loading" defaultMessage="Loading" />...</h1>
+                  </div>
+                }
+              >
+                <div className="tracks">
+                  <Grid columns="equal">
+                    <Grid.Row stretched>
+                      {series.map(s => <Series key={s._id} series={s} />)}
+                    </Grid.Row>
+                  </Grid>
+                </div>
+              </InfiniteScroll>
+            </div>}
       </div>
     );
   }

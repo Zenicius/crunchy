@@ -39,7 +39,7 @@ class Navbar extends React.Component {
 
   async init() {
     // dont init after language change and while still in /settings
-    const pathname = this.props.location.pathname;
+    const {pathname} = this.props.location;
     if (pathname == '/settings') {
       this.changedLang = true;
       return;
@@ -67,11 +67,11 @@ class Navbar extends React.Component {
   }
 
   async componentDidUpdate() {
-    const pathname = this.props.location.pathname;
+    const {pathname} = this.props.location;
     const {activeItem} = this.state;
 
     // fix wrong active tab when back from series and settings, also fix current active tab when after language switch
-    if ((pathname == '/' || pathname == '/favorites' || pathname == '/my') && activeItem != pathname) {
+    if ((pathname == '/' || pathname == '/favorites') && activeItem != pathname) {
       this.setState({
         activeItem: pathname,
       });
@@ -139,7 +139,7 @@ class Navbar extends React.Component {
 
   render() {
     const {user, loading, logedin, onLogin, activeItem} = this.state;
-    const pathname = this.props.location.pathname;
+    const {pathname} = this.props.location;
 
     // only show genres dropwdown when on home and searching by genres
     let genresDropdown;
@@ -153,9 +153,10 @@ class Navbar extends React.Component {
       genresDropdown = null;
     }
 
-    // user trigger
+    // user
     let trigger, options;
     if (user) {
+      // trigger
       trigger = (
         <span>
           <Image avatar src={user.image} />
@@ -163,7 +164,7 @@ class Navbar extends React.Component {
         </span>
       );
 
-      //user options
+      // options
       options = [
         {key: 'type', text: <span>{user.type}</span>, disabled: true},
         {
@@ -195,7 +196,7 @@ class Navbar extends React.Component {
 
     // Navbar (if current page is not supposed to have navbar, returns null)
     let navbar;
-    if (pathname == '/' || pathname == '/my' || pathname == '/favorites' || pathname.includes('/genre/')) {
+    if (pathname == '/' || pathname == '/favorites' || pathname.includes('/genre/')) {
       navbar = (
         <div>
           <Segment>
@@ -203,7 +204,7 @@ class Navbar extends React.Component {
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
                   <Image
-                    src="https://lh3.googleusercontent.com/qcjtKJXIG1Lb9swUbKSPosMQlp2QWKARrnM5cM9wKQvkNxQWDFEqpxKWeABhKea0PtFyFHsep614wOqcYqwW=w1919-h937"
+                    src="https://lh6.googleusercontent.com/S5BYOqK6eypmjMlimjqYywJwOGNABFVCDhE2d0JdvTvjiM9xpfnOKMGsxxOjdLNRt74tt_oKKxgVHnf6g9jv=w1919-h937"
                     size="tiny"
                   />
                 </Menu.Item>
@@ -220,10 +221,6 @@ class Navbar extends React.Component {
                 >
                   <Icon name="heart" size="large" />
                   <FormattedMessage id="Navbar.FavoritesButton" defaultMessage="Favorites" />
-                </Menu.Item>
-                <Menu.Item name="/my" as={Link} to="/my" active={activeItem === '/my'} onClick={this.handleActiveItem}>
-                  <Icon name="list ol" size="large" />
-                  <FormattedMessage id="Navbar.QueueButton" defaultMessage="Queue" />
                 </Menu.Item>
                 {genresDropdown}
                 <Menu.Item position="right">

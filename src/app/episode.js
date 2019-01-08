@@ -43,7 +43,7 @@ export default class Episode extends React.Component {
     const {episode, file} = this.state;
 
     // Dont do nothing if theres no file, episode or if theres an error
-    if (!episode || !file || file.err !== null) return;
+    if (!episode || !file || file.err) return;
 
     // format subtitles
     const formatedSubtitles = file.subtitles.map(subtitle => {
@@ -77,6 +77,8 @@ export default class Episode extends React.Component {
         player.ass().addSubtitle(subtitle.src, subtitle.label, null, subtitle.enabled);
       });
     });
+
+    this.isPlaying = true;
   }
 
   componentWillUnmount() {
@@ -105,11 +107,11 @@ export default class Episode extends React.Component {
         </Message>
       </div>
     );
+
     // video player if ready
     if (episode && file) {
       // No error, start video
-      if (file.err == null) {
-        this.isPlaying = true;
+      if (!file.err) {
         body = (
           <div>
             <Divider />
@@ -125,8 +127,13 @@ export default class Episode extends React.Component {
             <Message negative icon>
               <Icon name="info" />
               <Message.Content>
-                <Message.Header>{file.err}</Message.Header>
-                {file.errMessage}
+                <Message.Header>
+                  <FormattedMessage id="Error.EpisodeFailed" defaultMessage="Failed to load episode!" />
+                </Message.Header>
+                <FormattedMessage
+                  id="Error.EpisodeFailedMessage"
+                  defaultMessage="Maybe you are trying to load a premium episode without being logged in"
+                />
               </Message.Content>
             </Message>
           </div>

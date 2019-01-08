@@ -8,7 +8,6 @@ const db = {
   current: new PouchDB('current', {adapter: 'memory'}),
   auth: new PouchDB('auth'),
   favorites: new PouchDB('favorites'),
-  bookmarkSeries: new PouchDB('bookmarkSeries'),
   settings: new PouchDB('settings'),
 };
 

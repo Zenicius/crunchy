@@ -160,14 +160,6 @@ export default class Settings extends React.Component {
         })
       );
     });
-    // reset bookmarkSeries db
-    await db.bookmarkSeries.allDocs().then(result => {
-      return Promise.all(
-        result.rows.map(row => {
-          return db.bookmarkSeries.remove(row.id, row.value.rev);
-        })
-      );
-    });
 
     // Ends loading
     this.setState({loadingDbReset: false});

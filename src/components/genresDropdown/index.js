@@ -29,6 +29,7 @@ export default class GenresComponent extends React.Component {
 
   async handleChange(e, {value}) {
     e.persist();
+
     const title = e.currentTarget.textContent;
 
     // no changes
@@ -71,7 +72,7 @@ export default class GenresComponent extends React.Component {
   }
 
   render() {
-    const value = this.state.value;
+    const {value} = this.state;
 
     const options = [
       {key: 1, text: <FormattedMessage id="Genres.All" defaultMessage="All" />, value: 'all'},

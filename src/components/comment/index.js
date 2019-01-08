@@ -9,7 +9,7 @@ export default ({commentData}) => {
       <Comment>
         <Comment.Avatar src={commentData.user.thumb} />
         <Comment.Content>
-          <Comment.Author as="a">{commentData.user.name}</Comment.Author>
+          <Comment.Author>{commentData.user.name}</Comment.Author>
           <Comment.Metadata>
             <div>{commentData.comment.formattedTimeCreated}</div>
           </Comment.Metadata>

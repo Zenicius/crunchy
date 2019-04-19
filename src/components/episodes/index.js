@@ -4,7 +4,7 @@ import {withRouter} from 'react-router-dom';
 //localization
 import {FormattedMessage} from 'react-intl';
 //ui
-import {Popup, Grid, Card, Icon, Image} from 'semantic-ui-react';
+import {Popup, Grid, Card, Icon, Image, Progress} from 'semantic-ui-react';
 
 export default withRouter(({episode, history}) => {
   //Open Series Page
@@ -31,6 +31,7 @@ export default withRouter(({episode, history}) => {
           <Card color="red" onClick={openEpisode}>
             <Image src={episode.image} alt={episode.title} fluid />
             <Card.Content>
+              <Progress percent={episode.progress} size="tiny" indicating />
               <Card.Header>{episode.title}</Card.Header>
               {CardDescription}
             </Card.Content>

@@ -76,8 +76,8 @@ export default class SeriesInfo extends React.Component {
     }
   }
 
-  render() {
-    const info = this.state.info;
+  getGenresContainer() {
+    const {info} = this.state;
 
     // if theres genres tags, organize it
     let genres = '', genresContainer;
@@ -97,6 +97,10 @@ export default class SeriesInfo extends React.Component {
     } else
       genresContainer = null;
 
+    return genresContainer;
+  }
+
+  getFavoriteButtton() {
     // Switch favorite button
     let favoriteButtton;
     if (this.loadingFavorited) {
@@ -119,6 +123,14 @@ export default class SeriesInfo extends React.Component {
         </Button>
       );
     }
+
+    return favoriteButtton;
+  }
+
+  render() {
+    const {info} = this.state;
+    const genresContainer = this.getGenresContainer();
+    const favoriteButtton = this.getFavoriteButtton();
 
     return (
       <div className="infoContainer">

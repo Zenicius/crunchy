@@ -1,7 +1,6 @@
 //npm
 import request from 'request-promise-native';
 import cheerio from 'cheerio';
-import {M3U} from 'playlist-parser';
 import electron from 'electron';
 import _ from 'lodash';
 import he from 'he';
@@ -116,7 +115,7 @@ class Crunchyroll {
       console.log('Current URL: ', loginWin.webContents.getURL());
 
       // auth suceccesful
-      if (loginWin.webContents.getURL() === 'https://www.crunchyroll.com/') {
+      if (!loginWin.webContents.getURL().includes('login?next=%2F')) {
         loginWin.webContents.session.cookies.get({}, async (error, cookies) => {
           if (error) {
             console.log('Error: Failed to get cookies');
@@ -363,6 +362,12 @@ class Crunchyroll {
 
     // cookies
     const jar = request.jar();
+    if (this.authCookies !== null) {
+      this.authCookies.cookies.forEach(data => {
+        const cookie = request.cookie(`${data.name}=${data.value}`);
+        jar.setCookie(cookie, `${baseURL}${data.path}`);
+      });
+    }
     if (this.forceLanguage) {
       jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
     }
@@ -380,6 +385,7 @@ class Crunchyroll {
     const episodes = $('.group-item', '.list-of-seasons ul.portrait-grid')
       .map((index, el) => {
         const element = $(el);
+
         // img
         const img_container = $('img', element);
 
@@ -389,6 +395,7 @@ class Crunchyroll {
         const title = $('.series-title', element).text().trim();
         const description = $('.short-desc', element).text().trim();
         const number = title.replace(/^\D+/g, '');
+        const progress = $('.episode-progress', element).attr('style').slice(7, -2);
         var season = $('a.episode', element).attr('title').replace(title, '');
 
         // unique season or no seasons
@@ -404,6 +411,7 @@ class Crunchyroll {
           description,
           season,
           number,
+          progress,
           series: series._id,
         };
       })
@@ -484,30 +492,12 @@ class Crunchyroll {
       jar.setCookie(request.cookie(`c_locale=${this.language}`), baseURL);
     }
 
-    // load episode page
-    const data = await request({
-      url: episode.url,
-      jar,
-    });
-
-    // cheerio
-    const $ = cheerio.load(data);
-
-    // available formats
-    const formats = [];
-    $('a[token^=showmedia]').each((index, el) => {
-      const token = $(el).attr('token');
-      if (!token.includes('showmedia.')) return;
-      const formatId = token.replace('shomedia.', '').replace(/p$/, '');
-      formats.push(formatId);
-    });
-    const format = formats[0];
     const idRegex = /([0-9]+)$/g;
     const idMatches = idRegex.exec(episode.url);
     const id = idMatches[0];
 
     const xmlUrl = `https://www.crunchyroll.com/xml/?req=RpcApiVideoPlayer_GetStandardConfig&` +
-      `media_id=${id}&video_format=${format}&video_quality=${format}`;
+      `media_id=${id}&video_format=108&video_quality=80`;
 
     const xmlData = await request({
       url: xmlUrl,
@@ -536,10 +526,6 @@ class Crunchyroll {
 
     const streamInfo = preload.stream_info[0];
     const streamFile = streamInfo.file[0];
-
-    // load stream urls playlist
-    const streamFileData = await request(streamFile);
-    const playlist = M3U.parse(streamFileData);
 
     // get preferred subtitles from db
     let preferredSub;
@@ -583,7 +569,7 @@ class Crunchyroll {
     }
 
     // final
-    const url = playlist.pop().file;
+    const url = streamFile;
     const type = 'application/x-mpegURL';
 
     return {url, type, subtitles, err};

@@ -237,16 +237,7 @@ export default class Settings extends React.Component {
     });
   }
 
-  render() {
-    const {history} = this.props;
-
-    // Subtitle Dropdown
-    const {subDropdownTitle, loadingSubDropdown, showSavedMessage} = this.state;
-    // Db and Reset
-    const {openConfirmDb, openConfirmReset, loadingDbReset} = this.state;
-    // Crunchyroll
-    const {toggleForceChecked, toggleSaveChecked, showToggleSaveWarning} = this.state;
-
+  getSubOptions() {
     // Subtitles options
     const subOptions = [
       {
@@ -295,6 +286,21 @@ export default class Settings extends React.Component {
         flag: 'ru',
       },
     ];
+
+    return subOptions;
+  }
+
+  render() {
+    const {history} = this.props;
+
+    // Subtitle Dropdown
+    const {subDropdownTitle, loadingSubDropdown, showSavedMessage} = this.state;
+    // Db and Reset
+    const {openConfirmDb, openConfirmReset, loadingDbReset} = this.state;
+    // Crunchyroll
+    const {toggleForceChecked, toggleSaveChecked, showToggleSaveWarning} = this.state;
+
+    const subOptions = this.getSubOptions();
 
     return (
       <div>

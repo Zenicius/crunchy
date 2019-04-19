@@ -133,9 +133,9 @@ export default class Home extends React.Component {
                   </div>
                 }
               >
-                <div className="tracks">
+                <div>
                   <Grid columns="equal">
-                    <Grid.Row stretched>
+                    <Grid.Row>
                       {series.map(s => <Series key={s._id} series={s} />)}
                     </Grid.Row>
                   </Grid>

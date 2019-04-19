@@ -10,17 +10,14 @@ import Favorites from './app/favorites';
 import Series from './app/series';
 import Episode from './app/episode';
 import Settings from './app/settings';
-import Info from './app/info';
 //components
 import Navbar from './components/navbar';
-//ui
-import {Container} from 'semantic-ui-react';
 
 // render on page
 ReactDOM.render(
   <IntlProvider>
     <HashRouter>
-      <Container fluid>
+      <div>
         <Navbar />
         <Switch>
           <Route exact path="/" component={Home} />
@@ -29,10 +26,9 @@ ReactDOM.render(
           <Route path="/series/:id" component={Series} />
           <Route path="/episode/:id" component={Episode} />
           <Route exact path="/settings" component={Settings} />
-          <Route exact path="/info" component={Info} />
           <Route component={Home} />
         </Switch>
-      </Container>
+      </div>
     </HashRouter>
   </IntlProvider>,
   document.getElementById('app')

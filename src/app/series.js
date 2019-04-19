@@ -354,14 +354,6 @@ export default class Series extends React.Component {
         ),
         render: () => loadingComments ? <Tab.Pane loading /> : <Tab.Pane>{commentsTab}</Tab.Pane>,
       },
-      {
-        menuItem: (
-          <Menu.Item key="reviews">
-            <FormattedMessage id="SeriesTab.Reviews" defaultMessage="Reviews" />
-          </Menu.Item>
-        ),
-        render: () => <Tab.Pane>SOON</Tab.Pane>,
-      },
     ];
 
     return (

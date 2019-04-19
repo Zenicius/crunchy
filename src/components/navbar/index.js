@@ -137,8 +137,7 @@ class Navbar extends React.Component {
     });
   }
 
-  render() {
-    const {user, loading, logedin, onLogin, activeItem} = this.state;
+  getGenresDropDown() {
     const {pathname} = this.props.location;
 
     // only show genres dropwdown when on home and searching by genres
@@ -152,6 +151,12 @@ class Navbar extends React.Component {
     } else {
       genresDropdown = null;
     }
+
+    return genresDropdown;
+  }
+
+  getUserDropDown() {
+    const {user, loading, logedin, onLogin} = this.state;
 
     // user
     let trigger, options;
@@ -194,6 +199,16 @@ class Navbar extends React.Component {
       userDropDown = <Button circular icon="user" onClick={this.handleLogin} />;
     }
 
+    return userDropDown;
+  }
+
+  getNavBar() {
+    const {activeItem} = this.state;
+    const {pathname} = this.props.location;
+
+    const genresDropdown = this.getGenresDropDown();
+    const userDropDown = this.getUserDropDown();
+
     // Navbar (if current page is not supposed to have navbar, returns null)
     let navbar;
     if (pathname == '/' || pathname == '/favorites' || pathname.includes('/genre/')) {
@@ -203,10 +218,7 @@ class Navbar extends React.Component {
             <Container>
               <Menu className="Menu" fixed="top" pointing borderless>
                 <Menu.Item>
-                  <Image
-                    src="https://lh6.googleusercontent.com/S5BYOqK6eypmjMlimjqYywJwOGNABFVCDhE2d0JdvTvjiM9xpfnOKMGsxxOjdLNRt74tt_oKKxgVHnf6g9jv=w1919-h937"
-                    size="tiny"
-                  />
+                  <Image src={'src/app/styles/logo.png'} size="tiny" />
                 </Menu.Item>
                 <Menu.Item name="/" as={Link} to="/" active={activeItem === '/'} onClick={this.handleActiveItem}>
                   <Icon name="video play" size="large" />
@@ -233,9 +245,6 @@ class Navbar extends React.Component {
                 <Menu.Item>
                   <Button as={Link} to="/settings" circular icon="settings" />
                 </Menu.Item>
-                <Menu.Item>
-                  <Button as={Link} to="/info" circular icon="info" />
-                </Menu.Item>
               </Menu>
             </Container>
           </Segment>
@@ -245,6 +254,11 @@ class Navbar extends React.Component {
       navbar = null;
     }
 
+    return navbar;
+  }
+
+  render() {
+    const navbar = this.getNavBar();
     return navbar;
   }
 }

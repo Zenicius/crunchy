@@ -68,8 +68,13 @@ export default class Episode extends React.Component {
       language: lang,
       plugins: {
         ass: {},
+        httpSourceSelector: {
+          default: 'high',
+        },
       },
     });
+
+    player.httpSourceSelector();
 
     // add all available subtitles
     player.on('ready', () => {
@@ -90,9 +95,8 @@ export default class Episode extends React.Component {
     }
   }
 
-  render() {
+  getBody() {
     const {episode, file} = this.state;
-    const {history} = this.props;
 
     // Loading default
     let body = (
@@ -140,6 +144,13 @@ export default class Episode extends React.Component {
         );
       }
     }
+
+    return body;
+  }
+
+  render() {
+    const {history} = this.props;
+    const body = this.getBody();
 
     return (
       <div>

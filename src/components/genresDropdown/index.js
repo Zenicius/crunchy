@@ -71,9 +71,7 @@ export default class GenresComponent extends React.Component {
     }
   }
 
-  render() {
-    const {value} = this.state;
-
+  getOptions() {
     const options = [
       {key: 1, text: <FormattedMessage id="Genres.All" defaultMessage="All" />, value: 'all'},
       {key: 2, text: <FormattedMessage id="Genres.Action" defaultMessage="Action" />, value: 'action'},
@@ -100,6 +98,13 @@ export default class GenresComponent extends React.Component {
       },
       {key: 16, text: <FormattedMessage id="Genres.Sports" defaultMessage="Sports" />, value: 'sports'},
     ];
+
+    return options;
+  }
+
+  render() {
+    const {value} = this.state;
+    const options = this.getOptions();
 
     return (
       <div>

@@ -1,4 +1,5 @@
 # Crunchy
+*Currently Halted
 Desktop Electron based app for video streaming from Crunchyroll!
 
 <img src="screenshot.png" width="600">

@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@videojs/http-streaming": "^1.8.0",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "big-integer": "^1.6.40",
     "cheerio": "^0.22.0",
     "he": "^1.2.0",

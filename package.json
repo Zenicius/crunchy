@@ -32,7 +32,7 @@
     "cheerio": "^0.22.0",
     "he": "^1.2.0",
     "libjass": "^0.11.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.21",
     "pouchdb-adapter-memory": "^7.0.0",
     "pouchdb-browser": "6.1.2",
     "react": "^16.7.0",
